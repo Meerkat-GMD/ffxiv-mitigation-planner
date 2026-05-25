@@ -71,6 +71,13 @@ test('renaming shared actions keeps the old name as an alias for existing placem
     assert.match(appJs, /item\.aliases = \[\.\.\.new Set\(\[\.\.\.\(item\.aliases \|\| \[\]\), previousName\]\)\]/);
 });
 
+test('static XIVAPI fallback prefers assigned PvE action icons', () => {
+    assert.match(appJs, /Name,Icon,ClassJobCategory,IsPvP/);
+    assert.match(appJs, /function findBestXivapiIconResult/);
+    assert.match(appJs, /hasAssignedClassJobCategory/);
+    assert.match(appJs, /candidate\?\.fields\?\.IsPvP !== true/);
+});
+
 test('default planner state is available as a static asset for GitHub Pages', () => {
     const defaultStatePath = path.join(__dirname, '..', 'public', 'default-state.json');
     const defaultState = JSON.parse(fs.readFileSync(defaultStatePath, 'utf8'));

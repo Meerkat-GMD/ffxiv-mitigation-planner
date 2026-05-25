@@ -1220,7 +1220,7 @@ async function requestXivapiIcon(name) {
     try {
         const searchUrl = new URL('https://v2.xivapi.com/api/search');
         searchUrl.searchParams.set('sheets', 'Action');
-        searchUrl.searchParams.set('fields', 'Name,Icon');
+        searchUrl.searchParams.set('fields', 'Name,Icon,ClassJobCategory,IsPvP');
         searchUrl.searchParams.set('query', `Name=${JSON.stringify(name)}`);
         searchUrl.searchParams.set('language', 'en');
         searchUrl.searchParams.set('limit', '8');
@@ -1230,7 +1230,7 @@ async function requestXivapiIcon(name) {
             return '';
         }
         const payload = await response.json();
-        const result = (payload.results || []).find((candidate) => candidate?.fields?.Icon) || null;
+        const result = findBestXivapiIconResult(payload.results || [], name);
         const path = result?.fields?.Icon?.path_hr1 || result?.fields?.Icon?.path;
         if (!path) {
             return '';
@@ -1243,6 +1243,25 @@ async function requestXivapiIcon(name) {
     } catch {
         return '';
     }
+}
+
+function findBestXivapiIconResult(results, actionName) {
+    const normalized = normalizeActionName(actionName).toLowerCase();
+    const exactMatches = results.filter(
+        (candidate) => String(candidate?.fields?.Name || '').toLowerCase() === normalized && candidate?.fields?.Icon,
+    );
+
+    return (
+        exactMatches.find((candidate) => candidate?.fields?.IsPvP !== true && hasAssignedClassJobCategory(candidate)) ||
+        exactMatches.find((candidate) => candidate?.fields?.IsPvP !== true) ||
+        exactMatches[0] ||
+        results.find((candidate) => candidate?.fields?.Icon) ||
+        null
+    );
+}
+
+function hasAssignedClassJobCategory(candidate) {
+    return Boolean(String(candidate?.fields?.ClassJobCategory?.fields?.Name || '').trim());
 }
 
 function renderParty() {
