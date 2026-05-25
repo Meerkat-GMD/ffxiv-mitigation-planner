@@ -58,3 +58,11 @@ test('default planner state is available as a static asset for GitHub Pages', ()
     assert.equal(defaultState.state.party.length, 8);
     assert.ok(defaultState.state.actionCatalog.length > 20);
 });
+
+test('Firebase config is populated for the shared GitHub Pages deployment', () => {
+    const firebaseConfigJs = fs.readFileSync(path.join(__dirname, '..', 'public', 'firebase-config.js'), 'utf8');
+
+    assert.match(firebaseConfigJs, /window\.FIREBASE_CONFIG = \{/);
+    assert.match(firebaseConfigJs, /projectId: 'ffxiv-mitigation-planner'/);
+    assert.match(firebaseConfigJs, /databaseURL: 'https:\/\/ffxiv-mitigation-planner-default-rtdb\.firebaseio\.com'/);
+});
