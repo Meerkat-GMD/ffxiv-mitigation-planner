@@ -173,6 +173,11 @@ async function connectFirebase() {
                 firebasePlanRef.set(buildRemotePayload(state));
                 return;
             }
+            if (payload.updatedBy === clientId && isTextEditingElement(document.activeElement)) {
+                setConnection(true, `Firebase: ${planId}`);
+                elements.onlineCount.textContent = '공유 plan';
+                return;
+            }
 
             applyRemoteState(payload.state);
             setConnection(true, `Firebase: ${planId}`);
@@ -522,8 +527,60 @@ function commitFieldChange(target, immediate) {
     if (immediate || target instanceof HTMLSelectElement) {
         sendUpdate();
     } else {
-        inputTimer = window.setTimeout(sendUpdate, 300);
+        inputTimer = window.setTimeout(() => sendUpdate({ renderNow: false }), 300);
     }
+}
+
+function isTextEditingElement(element) {
+    return (
+        element instanceof HTMLInputElement &&
+        element.type !== 'number' &&
+        Boolean(element.dataset.collection && element.dataset.id && element.dataset.field)
+    );
+}
+
+function captureFocusedField() {
+    const element = document.activeElement;
+    if (!(element instanceof HTMLInputElement || element instanceof HTMLSelectElement)) {
+        return null;
+    }
+    if (!element.dataset.collection || !element.dataset.id || !element.dataset.field) {
+        return null;
+    }
+
+    return {
+        collection: element.dataset.collection,
+        field: element.dataset.field,
+        id: element.dataset.id,
+        selectionEnd: element.selectionEnd,
+        selectionStart: element.selectionStart,
+    };
+}
+
+function restoreFocusedField(focusedField) {
+    if (!focusedField) {
+        return;
+    }
+
+    const selector = `[data-collection="${cssEscape(focusedField.collection)}"][data-id="${cssEscape(focusedField.id)}"][data-field="${cssEscape(focusedField.field)}"]`;
+    const element = document.querySelector(selector);
+    if (!(element instanceof HTMLInputElement || element instanceof HTMLSelectElement)) {
+        return;
+    }
+
+    element.focus();
+    if (element instanceof HTMLInputElement && element.type !== 'number' && focusedField.selectionStart !== null) {
+        const end = Math.min(focusedField.selectionEnd ?? focusedField.selectionStart, element.value.length);
+        const start = Math.min(focusedField.selectionStart, end);
+        element.setSelectionRange(start, end);
+    }
+}
+
+function cssEscape(value) {
+    if (window.CSS?.escape) {
+        return window.CSS.escape(String(value));
+    }
+    return String(value).replaceAll('"', '\\"');
 }
 
 function addMechanic() {
@@ -948,10 +1005,12 @@ function groupIncludesMemberClient(group, member, ownerId = '') {
     return false;
 }
 
-function sendUpdate() {
+function sendUpdate({ renderNow = true } = {}) {
     if (syncMode === 'firebase' && firebasePlanRef) {
         refreshClientResults();
-        render();
+        if (renderNow) {
+            render();
+        }
         window.clearTimeout(remoteSaveTimer);
         remoteSaveTimer = window.setTimeout(() => {
             firebasePlanRef.set(buildRemotePayload(state));
@@ -960,23 +1019,29 @@ function sendUpdate() {
     }
     if (syncMode === 'static') {
         refreshClientResults();
-        render();
+        if (renderNow) {
+            render();
+        }
         return;
     }
 
     if (socket?.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: 'update', clientId, state }));
     }
-    render();
+    if (renderNow) {
+        render();
+    }
 }
 
 function render() {
+    const focusedField = captureFocusedField();
     renderParty();
     renderMechanics();
     renderMitigations();
     renderActions();
     renderTimeline();
     renderResults();
+    restoreFocusedField(focusedField);
     requestMissingIcons();
 }
 

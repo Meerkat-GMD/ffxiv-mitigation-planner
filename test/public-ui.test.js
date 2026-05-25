@@ -69,3 +69,11 @@ test('Firebase config is populated for the shared GitHub Pages deployment', () =
     assert.match(firebaseConfigJs, /projectId: 'ffxiv-mitigation-planner'/);
     assert.match(firebaseConfigJs, /databaseURL: 'https:\/\/ffxiv-mitigation-planner-default-rtdb\.firebaseio\.com'/);
 });
+
+test('text edits can sync without immediately rerendering focused inputs', () => {
+    assert.match(appJs, /function isTextEditingElement/);
+    assert.match(appJs, /function captureFocusedField/);
+    assert.match(appJs, /function restoreFocusedField/);
+    assert.match(appJs, /sendUpdate\(\{ renderNow: false \}\)/);
+    assert.match(appJs, /payload\.updatedBy === clientId && isTextEditingElement\(document\.activeElement\)/);
+});
