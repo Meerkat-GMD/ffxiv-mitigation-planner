@@ -84,7 +84,7 @@ const elements = {
     timeline: document.querySelector('#timeline'),
     timelineRange: document.querySelector('#timelineRange'),
     addMechanicButton: document.querySelector('#addMechanicButton'),
-    quickAddMechanicButton: document.querySelector('#quickAddMechanicButton'),
+    newTimelineButton: document.querySelector('#newTimelineButton'),
     savePlanButton: document.querySelector('#savePlanButton'),
     loadPlanButton: document.querySelector('#loadPlanButton'),
     loadPlanInput: document.querySelector('#loadPlanInput'),
@@ -195,9 +195,29 @@ function sanitizePlanId(planId) {
     return (
         String(planId || 'default')
             .trim()
+            .replace(/\s+/g, '-')
             .replace(/[.#$\[\]/]/g, '-')
+            .replace(/-+/g, '-')
             .slice(0, 80) || 'default'
     );
+}
+
+function createNewTimeline() {
+    const now = new Date();
+    const fallbackName = `plan-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+    const typedName = window.prompt('새 타임라인 이름을 입력하세요.', fallbackName);
+    if (typedName === null) {
+        return;
+    }
+
+    const planId = sanitizePlanId(typedName);
+    window.location.href = buildPlanUrl(planId);
+}
+
+function buildPlanUrl(planId) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('plan', sanitizePlanId(planId));
+    return url.toString();
 }
 
 async function loadDefaultState() {
@@ -269,7 +289,7 @@ function handleSocketMessage(raw) {
 
 function bindEvents() {
     elements.addMechanicButton.addEventListener('click', addMechanic);
-    elements.quickAddMechanicButton?.addEventListener('click', addMechanic);
+    elements.newTimelineButton?.addEventListener('click', createNewTimeline);
     elements.savePlanButton?.addEventListener('click', exportPlanToFile);
     elements.loadPlanButton?.addEventListener('click', () => elements.loadPlanInput?.click());
     elements.loadPlanInput?.addEventListener('change', importPlanFile);
