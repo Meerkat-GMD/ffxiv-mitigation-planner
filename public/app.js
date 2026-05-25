@@ -110,7 +110,12 @@ async function startSync() {
         return;
     }
 
-    connect();
+    if (isLocalServerHost()) {
+        connect();
+        return;
+    }
+
+    await connectStatic();
 }
 
 function hasFirebaseConfig() {
@@ -123,6 +128,27 @@ function hasFirebaseConfig() {
             config.databaseURL &&
             config.projectId,
     );
+}
+
+function isLocalServerHost() {
+    const host = location.hostname;
+    return (
+        host === 'localhost' ||
+        host === '127.0.0.1' ||
+        host === '0.0.0.0' ||
+        host.startsWith('192.168.') ||
+        host.endsWith('.trycloudflare.com')
+    );
+}
+
+async function connectStatic() {
+    syncMode = 'static';
+    clientId = clientId || createId('client');
+    applyRemoteState(await loadDefaultState());
+    setConnection(true, '파일 모드');
+    elements.onlineCount.textContent = '브라우저 저장';
+    render();
+    requestMissingIcons();
 }
 
 async function connectFirebase() {
@@ -255,6 +281,11 @@ function bindEvents() {
         if (syncMode === 'firebase' && firebasePlanRef) {
             applyRemoteState(await loadDefaultState());
             firebasePlanRef.set(buildRemotePayload(state));
+            render();
+            return;
+        }
+        if (syncMode === 'static') {
+            applyRemoteState(await loadDefaultState());
             render();
             return;
         }
@@ -905,6 +936,11 @@ function sendUpdate() {
         remoteSaveTimer = window.setTimeout(() => {
             firebasePlanRef.set(buildRemotePayload(state));
         }, 120);
+        return;
+    }
+    if (syncMode === 'static') {
+        refreshClientResults();
+        render();
         return;
     }
 

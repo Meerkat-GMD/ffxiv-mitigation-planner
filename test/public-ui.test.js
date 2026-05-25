@@ -43,6 +43,8 @@ test('static build can use Firebase Realtime Database for shared plans', () => {
     assert.match(html, /firebase-database-compat\.js/);
     assert.match(html, /firebase-config\.js/);
     assert.match(appJs, /function connectFirebase/);
+    assert.match(appJs, /function connectStatic/);
+    assert.match(appJs, /isLocalServerHost/);
     assert.match(appJs, /plans\/\$\{planId\}/);
     assert.match(appJs, /function loadDefaultState/);
     assert.match(appJs, /function calculatePlannerResultsClient/);
