@@ -1,0 +1,843 @@
+{
+  "version": 1,
+  "state": {
+    "actionCatalog": [
+      {
+        "id": "reprisal",
+        "name": "Reprisal",
+        "cooldown": 60,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "pld",
+          "war",
+          "drk",
+          "gnb"
+        ],
+        "aliases": [
+          "앙갚음"
+        ]
+      },
+      {
+        "id": "rampart",
+        "name": "Rampart",
+        "cooldown": 90,
+        "duration": 20,
+        "reduction": 20,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "pld",
+          "war",
+          "drk",
+          "gnb"
+        ],
+        "aliases": [
+          "철벽 방어",
+          "철벽방어"
+        ]
+      },
+      {
+        "id": "guardian",
+        "name": "Guardian",
+        "cooldown": 120,
+        "duration": 15,
+        "reduction": 40,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "pld"
+        ],
+        "aliases": [
+          "극한 방어",
+          "경계"
+        ]
+      },
+      {
+        "id": "hallowed-ground",
+        "name": "Hallowed Ground",
+        "cooldown": 420,
+        "duration": 10,
+        "reduction": 100,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "pld"
+        ],
+        "aliases": [
+          "천하무적"
+        ]
+      },
+      {
+        "id": "holy-sheltron",
+        "name": "Holy Sheltron",
+        "cooldown": 5,
+        "duration": 8,
+        "reduction": 15,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "pld"
+        ],
+        "aliases": [
+          "신성한 방벽",
+          "방벽"
+        ]
+      },
+      {
+        "id": "intervention",
+        "name": "Intervention",
+        "cooldown": 10,
+        "duration": 8,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "pld"
+        ],
+        "aliases": [
+          "중재"
+        ]
+      },
+      {
+        "id": "divine-veil",
+        "name": "Divine Veil",
+        "cooldown": 90,
+        "duration": 30,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "pld"
+        ],
+        "aliases": [
+          "신성한 보호막"
+        ]
+      },
+      {
+        "id": "passage-of-arms",
+        "name": "Passage of Arms",
+        "cooldown": 120,
+        "duration": 18,
+        "reduction": 15,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "pld"
+        ],
+        "aliases": [
+          "결연한 수호자"
+        ]
+      },
+      {
+        "id": "vengeance",
+        "name": "Vengeance",
+        "cooldown": 120,
+        "duration": 15,
+        "reduction": 30,
+        "damageType": "physical",
+        "targetGroup": "owner",
+        "jobs": [
+          "war"
+        ],
+        "aliases": [
+          "보복"
+        ]
+      },
+      {
+        "id": "damnation",
+        "name": "Damnation",
+        "cooldown": 120,
+        "duration": 15,
+        "reduction": 40,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "war"
+        ],
+        "aliases": [
+          "원초의 분노"
+        ]
+      },
+      {
+        "id": "holmgang",
+        "name": "Holmgang",
+        "cooldown": 240,
+        "duration": 10,
+        "reduction": 100,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "war"
+        ],
+        "aliases": [
+          "일대일 결투"
+        ]
+      },
+      {
+        "id": "bloodwhetting",
+        "name": "Bloodwhetting",
+        "cooldown": 25,
+        "duration": 8,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "war"
+        ],
+        "aliases": [
+          "혈기"
+        ]
+      },
+      {
+        "id": "nascent-flash",
+        "name": "Nascent Flash",
+        "cooldown": 25,
+        "duration": 8,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "war"
+        ],
+        "aliases": [
+          "원초의 혈기"
+        ]
+      },
+      {
+        "id": "shake-it-off",
+        "name": "Shake It Off",
+        "cooldown": 90,
+        "duration": 30,
+        "reduction": 15,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "war"
+        ],
+        "aliases": [
+          "뿌리치기"
+        ]
+      },
+      {
+        "id": "shadow-wall",
+        "name": "Shadow Wall",
+        "cooldown": 120,
+        "duration": 15,
+        "reduction": 30,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "drk"
+        ],
+        "aliases": [
+          "어둠의 장벽"
+        ]
+      },
+      {
+        "id": "living-dead",
+        "name": "Living Dead",
+        "cooldown": 300,
+        "duration": 10,
+        "reduction": 100,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "drk"
+        ],
+        "aliases": [
+          "산송장"
+        ]
+      },
+      {
+        "id": "dark-mind",
+        "name": "Dark Mind",
+        "cooldown": 60,
+        "duration": 10,
+        "reduction": 20,
+        "damageType": "magical",
+        "targetGroup": "owner",
+        "jobs": [
+          "drk"
+        ],
+        "aliases": [
+          "어두운 감정"
+        ]
+      },
+      {
+        "id": "the-blackest-night",
+        "name": "The Blackest Night",
+        "cooldown": 15,
+        "duration": 7,
+        "reduction": 25,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "drk"
+        ],
+        "aliases": [
+          "흑야"
+        ]
+      },
+      {
+        "id": "oblation",
+        "name": "Oblation",
+        "cooldown": 60,
+        "duration": 10,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "drk"
+        ],
+        "aliases": [
+          "헌신"
+        ]
+      },
+      {
+        "id": "dark-missionary",
+        "name": "Dark Missionary",
+        "cooldown": 90,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "magical",
+        "targetGroup": "all",
+        "jobs": [
+          "drk"
+        ],
+        "aliases": [
+          "어둠의 포교자"
+        ]
+      },
+      {
+        "id": "nebula",
+        "name": "Nebula",
+        "cooldown": 120,
+        "duration": 15,
+        "reduction": 30,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "gnb"
+        ],
+        "aliases": [
+          "성운"
+        ]
+      },
+      {
+        "id": "great-nebula",
+        "name": "Great Nebula",
+        "cooldown": 120,
+        "duration": 15,
+        "reduction": 40,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "gnb"
+        ],
+        "aliases": [
+          "대성운"
+        ]
+      },
+      {
+        "id": "superbolide",
+        "name": "Superbolide",
+        "cooldown": 360,
+        "duration": 10,
+        "reduction": 100,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "gnb"
+        ],
+        "aliases": [
+          "초신성"
+        ]
+      },
+      {
+        "id": "camouflage",
+        "name": "Camouflage",
+        "cooldown": 90,
+        "duration": 20,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "gnb"
+        ],
+        "aliases": [
+          "위장술"
+        ]
+      },
+      {
+        "id": "heart-of-corundum",
+        "name": "Heart of Corundum",
+        "cooldown": 25,
+        "duration": 8,
+        "reduction": 15,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "gnb"
+        ],
+        "aliases": [
+          "강옥의 심장",
+          "돌의 심장"
+        ]
+      },
+      {
+        "id": "heart-of-light",
+        "name": "Heart of Light",
+        "cooldown": 90,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "magical",
+        "targetGroup": "all",
+        "jobs": [
+          "gnb"
+        ],
+        "aliases": [
+          "빛의 심장"
+        ]
+      },
+      {
+        "id": "aquaveil",
+        "name": "Aquaveil",
+        "cooldown": 60,
+        "duration": 8,
+        "reduction": 15,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "whm"
+        ],
+        "aliases": [
+          "물의 장막"
+        ]
+      },
+      {
+        "id": "divine-benison",
+        "name": "Divine Benison",
+        "cooldown": 30,
+        "duration": 15,
+        "reduction": 15,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "whm"
+        ],
+        "aliases": [
+          "신의 이름"
+        ]
+      },
+      {
+        "id": "temperance",
+        "name": "Temperance",
+        "cooldown": 120,
+        "duration": 20,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "whm"
+        ],
+        "aliases": [
+          "절제"
+        ]
+      },
+      {
+        "id": "sacred-soil",
+        "name": "Sacred Soil",
+        "cooldown": 30,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "sch"
+        ],
+        "aliases": [
+          "야전치유진"
+        ]
+      },
+      {
+        "id": "expedient",
+        "name": "Expedient",
+        "cooldown": 120,
+        "duration": 20,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "sch"
+        ],
+        "aliases": [
+          "질풍노도계"
+        ]
+      },
+      {
+        "id": "collective-unconscious",
+        "name": "Collective Unconscious",
+        "cooldown": 60,
+        "duration": 18,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "ast"
+        ],
+        "aliases": [
+          "운명의 수레바퀴"
+        ]
+      },
+      {
+        "id": "exaltation",
+        "name": "Exaltation",
+        "cooldown": 60,
+        "duration": 8,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "ast"
+        ],
+        "aliases": [
+          "별점"
+        ]
+      },
+      {
+        "id": "sun-sign",
+        "name": "Sun Sign",
+        "cooldown": 120,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "ast"
+        ],
+        "aliases": [
+          "태양별자리"
+        ]
+      },
+      {
+        "id": "kerachole",
+        "name": "Kerachole",
+        "cooldown": 30,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "sge"
+        ],
+        "aliases": [
+          "케라콜레"
+        ]
+      },
+      {
+        "id": "taurochole",
+        "name": "Taurochole",
+        "cooldown": 45,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "sge"
+        ],
+        "aliases": [
+          "타우로콜레"
+        ]
+      },
+      {
+        "id": "holos",
+        "name": "Holos",
+        "cooldown": 120,
+        "duration": 20,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "sge"
+        ],
+        "aliases": [
+          "홀로스"
+        ]
+      },
+      {
+        "id": "haima",
+        "name": "Haima",
+        "cooldown": 120,
+        "duration": 15,
+        "reduction": 15,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "sge"
+        ],
+        "aliases": [
+          "하이마"
+        ]
+      },
+      {
+        "id": "panhaima",
+        "name": "Panhaima",
+        "cooldown": 120,
+        "duration": 15,
+        "reduction": 15,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "sge"
+        ],
+        "aliases": [
+          "판하이마"
+        ]
+      },
+      {
+        "id": "addle",
+        "name": "Addle",
+        "cooldown": 90,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "magical",
+        "targetGroup": "all",
+        "jobs": [
+          "blm",
+          "smn",
+          "rdm",
+          "pct"
+        ],
+        "aliases": [
+          "정신 교란",
+          "정신교란"
+        ]
+      },
+      {
+        "id": "feint",
+        "name": "Feint",
+        "cooldown": 90,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "physical",
+        "targetGroup": "all",
+        "jobs": [
+          "mnk",
+          "drg",
+          "nin",
+          "sam",
+          "rpr",
+          "vpr"
+        ],
+        "aliases": [
+          "견제"
+        ]
+      },
+      {
+        "id": "troubadour",
+        "name": "Troubadour",
+        "cooldown": 90,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "brd"
+        ],
+        "aliases": [
+          "방랑하는 음악가"
+        ]
+      },
+      {
+        "id": "tactician",
+        "name": "Tactician",
+        "cooldown": 90,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "mch"
+        ],
+        "aliases": [
+          "책략가"
+        ]
+      },
+      {
+        "id": "shield-samba",
+        "name": "Shield Samba",
+        "cooldown": 90,
+        "duration": 15,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "dnc"
+        ],
+        "aliases": [
+          "방패 삼바",
+          "방패삼바"
+        ]
+      },
+      {
+        "id": "magick-barrier",
+        "name": "Magick Barrier",
+        "cooldown": 120,
+        "duration": 10,
+        "reduction": 10,
+        "damageType": "magical",
+        "targetGroup": "all",
+        "jobs": [
+          "rdm"
+        ],
+        "aliases": [
+          "바매직",
+          "마법 방벽"
+        ]
+      },
+      {
+        "id": "tempera-grassa",
+        "name": "Tempera Grassa",
+        "cooldown": 120,
+        "duration": 10,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "pct"
+        ],
+        "aliases": [
+          "템페라 그라사"
+        ]
+      }
+    ],
+    "party": [
+      {
+        "id": "mt",
+        "name": "MT",
+        "role": "tank",
+        "job": "gnb",
+        "maxHp": 156000
+      },
+      {
+        "id": "st",
+        "name": "ST",
+        "role": "tank",
+        "job": "drk",
+        "maxHp": 154000
+      },
+      {
+        "id": "h1",
+        "name": "H1",
+        "role": "healer",
+        "job": "whm",
+        "maxHp": 102000
+      },
+      {
+        "id": "h2",
+        "name": "H2",
+        "role": "healer",
+        "job": "sge",
+        "maxHp": 101000
+      },
+      {
+        "id": "d1",
+        "name": "D1",
+        "role": "dps",
+        "job": "vpr",
+        "maxHp": 98000
+      },
+      {
+        "id": "d2",
+        "name": "D2",
+        "role": "dps",
+        "job": "drg",
+        "maxHp": 97000
+      },
+      {
+        "id": "d3",
+        "name": "D3",
+        "role": "dps",
+        "job": "brd",
+        "maxHp": 96000
+      },
+      {
+        "id": "d4",
+        "name": "D4",
+        "role": "dps",
+        "job": "pct",
+        "maxHp": 95000
+      }
+    ],
+    "mechanics": [
+      {
+        "id": "m-1",
+        "time": 15,
+        "name": "Opening raidwide",
+        "damage": 95000,
+        "damageType": "magical",
+        "targetGroup": "all"
+      },
+      {
+        "id": "m-2",
+        "time": 42,
+        "name": "Dual buster",
+        "damage": 178000,
+        "damageType": "physical",
+        "targetGroup": "tanks"
+      },
+      {
+        "id": "m-3",
+        "time": 68,
+        "name": "Phase raidwide",
+        "damage": 126000,
+        "damageType": "darkness",
+        "targetGroup": "all"
+      }
+    ],
+    "mitigations": [
+      {
+        "id": "mit-1",
+        "ownerId": "mt",
+        "name": "Reprisal",
+        "actionName": "Reprisal",
+        "actionKey": "reprisal",
+        "start": 8,
+        "duration": 15,
+        "cooldown": 60,
+        "reduction": 10,
+        "damageType": "all",
+        "targetGroup": "all"
+      },
+      {
+        "id": "mit-2",
+        "ownerId": "h1",
+        "name": "Addle",
+        "actionName": "Addle",
+        "actionKey": "addle",
+        "start": 62,
+        "duration": 10,
+        "cooldown": 90,
+        "reduction": 10,
+        "damageType": "magical",
+        "targetGroup": "all"
+      },
+      {
+        "id": "mit-3",
+        "ownerId": "mt",
+        "name": "Rampart",
+        "actionName": "Rampart",
+        "actionKey": "rampart",
+        "start": 35,
+        "duration": 20,
+        "cooldown": 90,
+        "reduction": 20,
+        "damageType": "all",
+        "targetGroup": "owner"
+      }
+    ]
+  }
+}
