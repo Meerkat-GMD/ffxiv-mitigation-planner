@@ -53,6 +53,24 @@ test('static build can use Firebase Realtime Database for shared plans', () => {
     assert.match(appJs, /function calculatePlannerResultsClient/);
 });
 
+test('Firebase action catalog is shared globally instead of saved per timeline', () => {
+    assert.match(appJs, /firebaseActionCatalogRef/);
+    assert.match(appJs, /settings\/actionCatalog/);
+    assert.match(appJs, /function buildPlanPayload/);
+    assert.match(appJs, /function buildActionCatalogPayload/);
+    assert.match(appJs, /function applyActionCatalog/);
+    assert.match(appJs, /function getEffectiveMitigations/);
+    assert.match(appJs, /function sendActionCatalogUpdate/);
+    assert.match(appJs, /actionKey: action\.id/);
+    assert.match(appJs, /const \{ actionCatalog: _actionCatalog, \.\.\.planState \} = nextState/);
+});
+
+test('renaming shared actions keeps the old name as an alias for existing placements', () => {
+    assert.match(appJs, /const previousName = item\.name/);
+    assert.match(appJs, /field === 'name' && previousName && previousName !== item\.name/);
+    assert.match(appJs, /item\.aliases = \[\.\.\.new Set\(\[\.\.\.\(item\.aliases \|\| \[\]\), previousName\]\)\]/);
+});
+
 test('default planner state is available as a static asset for GitHub Pages', () => {
     const defaultStatePath = path.join(__dirname, '..', 'public', 'default-state.json');
     const defaultState = JSON.parse(fs.readFileSync(defaultStatePath, 'utf8'));
@@ -74,6 +92,6 @@ test('text edits can sync without immediately rerendering focused inputs', () =>
     assert.match(appJs, /function isTextEditingElement/);
     assert.match(appJs, /function captureFocusedField/);
     assert.match(appJs, /function restoreFocusedField/);
-    assert.match(appJs, /sendUpdate\(\{ renderNow: false \}\)/);
+    assert.match(appJs, /update\(\{ renderNow: false \}\)/);
     assert.match(appJs, /payload\.updatedBy === clientId && isTextEditingElement\(document\.activeElement\)/);
 });

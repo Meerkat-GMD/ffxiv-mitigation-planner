@@ -55,11 +55,13 @@ const state = {
 let results = [];
 let socket = null;
 let firebasePlanRef = null;
+let firebaseActionCatalogRef = null;
 let syncMode = 'websocket';
 let clientId = '';
 let reconnectTimer = 0;
 let inputTimer = 0;
 let remoteSaveTimer = 0;
+let actionCatalogSaveTimer = 0;
 let draggedMitigationId = '';
 let pointerMitigationId = '';
 const iconCache = new Map();
@@ -144,7 +146,9 @@ function isLocalServerHost() {
 async function connectStatic() {
     syncMode = 'static';
     clientId = clientId || createId('client');
-    applyRemoteState(await loadDefaultState());
+    const initialState = await loadDefaultState();
+    applyActionCatalog(initialState.actionCatalog);
+    applyRemoteState(initialState);
     setConnection(true, '파일 모드');
     elements.onlineCount.textContent = '브라우저 저장';
     render();
@@ -157,6 +161,7 @@ async function connectFirebase() {
     setConnection(false, 'Firebase 연결 중');
 
     const initialState = await loadDefaultState();
+    applyActionCatalog(initialState.actionCatalog);
     applyRemoteState(initialState);
     render();
 
@@ -164,13 +169,39 @@ async function connectFirebase() {
     const database = window.firebase.database(app);
     const planId = getPlanId();
     firebasePlanRef = database.ref(`plans/${planId}`);
+    firebaseActionCatalogRef = database.ref('settings/actionCatalog');
+
+    firebaseActionCatalogRef.on(
+        'value',
+        (snapshot) => {
+            const payload = snapshot.val();
+            if (!payload?.catalog && !Array.isArray(payload)) {
+                firebaseActionCatalogRef.set(buildActionCatalogPayload(state.actionCatalog));
+                return;
+            }
+            if (payload.updatedBy === clientId && isTextEditingElement(document.activeElement)) {
+                setConnection(true, `Firebase: ${planId}`);
+                elements.onlineCount.textContent = '공유 plan';
+                return;
+            }
+
+            applyActionCatalog(payload.catalog || payload);
+            setConnection(true, `Firebase: ${planId}`);
+            elements.onlineCount.textContent = '공유 plan';
+            render();
+            requestMissingIcons();
+        },
+        (error) => {
+            setConnection(false, `Firebase 스킬 오류: ${error.message}`);
+        },
+    );
 
     firebasePlanRef.on(
         'value',
         (snapshot) => {
             const payload = snapshot.val();
             if (!payload?.state) {
-                firebasePlanRef.set(buildRemotePayload(state));
+                firebasePlanRef.set(buildPlanPayload(state));
                 return;
             }
             if (payload.updatedBy === clientId && isTextEditingElement(document.activeElement)) {
@@ -245,11 +276,31 @@ function buildRemotePayload(nextState) {
     };
 }
 
+function buildPlanPayload(nextState) {
+    const { actionCatalog: _actionCatalog, ...planState } = nextState;
+    return buildRemotePayload(planState);
+}
+
+function buildActionCatalogPayload(actionCatalog) {
+    return {
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        updatedBy: clientId,
+        catalog: actionCatalog,
+    };
+}
+
 function applyRemoteState(nextState) {
-    state.actionCatalog = nextState.actionCatalog || state.actionCatalog || [];
     state.party = nextState.party || state.party || [];
     state.mechanics = nextState.mechanics || [];
     state.mitigations = nextState.mitigations || [];
+    refreshClientResults();
+}
+
+function applyActionCatalog(actionCatalog) {
+    if (Array.isArray(actionCatalog) && actionCatalog.length) {
+        state.actionCatalog = actionCatalog;
+    }
     refreshClientResults();
 }
 
@@ -305,12 +356,14 @@ function bindEvents() {
     elements.resetButton.addEventListener('click', async () => {
         if (syncMode === 'firebase' && firebasePlanRef) {
             applyRemoteState(await loadDefaultState());
-            firebasePlanRef.set(buildRemotePayload(state));
+            firebasePlanRef.set(buildPlanPayload(state));
             render();
             return;
         }
         if (syncMode === 'static') {
-            applyRemoteState(await loadDefaultState());
+            const defaultState = await loadDefaultState();
+            applyActionCatalog(defaultState.actionCatalog);
+            applyRemoteState(defaultState);
             render();
             return;
         }
@@ -353,7 +406,11 @@ function bindEvents() {
         const collection = button.dataset.collection;
         const id = button.dataset.id;
         state[collection] = state[collection].filter((item) => item.id !== id);
-        sendUpdate();
+        if (collection === 'actionCatalog') {
+            sendActionCatalogUpdate();
+        } else {
+            sendUpdate();
+        }
     });
 
     document.addEventListener('change', (event) => {
@@ -375,7 +432,7 @@ function bindEvents() {
             jobs.delete(job);
         }
         item.jobs = [...jobs];
-        sendUpdate();
+        sendActionCatalogUpdate();
     });
 
     document.addEventListener('dragstart', (event) => {
@@ -510,7 +567,11 @@ function commitFieldChange(target, immediate) {
             return;
         }
 
+        const previousName = item.name;
         item[field] = target.type === 'number' ? Number(target.value) : target.value;
+        if (collection === 'actionCatalog' && field === 'name' && previousName && previousName !== item.name) {
+            item.aliases = [...new Set([...(item.aliases || []), previousName])];
+        }
         if (collection === 'actionCatalog' && field === 'aliases') {
             item.aliases = target.value
                 .split(',')
@@ -524,10 +585,11 @@ function commitFieldChange(target, immediate) {
             requestActionIcon(item.name);
         }
         window.clearTimeout(inputTimer);
+    const update = collection === 'actionCatalog' ? sendActionCatalogUpdate : sendUpdate;
     if (immediate || target instanceof HTMLSelectElement) {
-        sendUpdate();
+        update();
     } else {
-        inputTimer = window.setTimeout(() => sendUpdate({ renderNow: false }), 300);
+        inputTimer = window.setTimeout(() => update({ renderNow: false }), 300);
     }
 }
 
@@ -627,7 +689,7 @@ function addAction() {
         targetGroup: 'all',
         aliases: [],
     });
-    sendUpdate();
+    sendActionCatalogUpdate();
 }
 
 function exportPlanToFile() {
@@ -656,7 +718,10 @@ async function importPlanFile(event) {
     try {
         const payload = JSON.parse(await file.text());
         const importedState = payload.state || payload;
-        state.actionCatalog = importedState.actionCatalog || state.actionCatalog;
+        if (importedState.actionCatalog) {
+            applyActionCatalog(importedState.actionCatalog);
+            sendActionCatalogUpdate();
+        }
         state.party = importedState.party || state.party;
         state.mechanics = importedState.mechanics || [];
         state.mitigations = importedState.mitigations || [];
@@ -738,6 +803,7 @@ function getMemberPresets(member) {
     return state.actionCatalog
         .filter((action) => (action.jobs || []).includes(member.job))
         .map((action) => ({
+            id: action.id,
             cooldown: Number(action.cooldown) || 0,
             damageType: action.damageType || 'all',
             duration: Number(action.duration) || 0,
@@ -751,6 +817,8 @@ function addMitigationFromPreset(ownerId, start, preset) {
     state.mitigations.push({
         id: createId('mit'),
         ownerId,
+        actionKey: preset.id || normalizeActionName(preset.name).toLowerCase(),
+        actionName: preset.name,
         name: preset.name,
         start,
         duration: preset.duration,
@@ -763,8 +831,9 @@ function addMitigationFromPreset(ownerId, start, preset) {
 }
 
 function placeMitigationAtClientX(mitigationId, clientX, canvas, clientY) {
-    const mitigation = state.mitigations.find((candidate) => candidate.id === mitigationId);
-    if (!mitigation) {
+    const mitigation = getEffectiveMitigation(mitigationId);
+    const originalMitigation = state.mitigations.find((candidate) => candidate.id === mitigationId);
+    if (!mitigation || !originalMitigation) {
         return;
     }
 
@@ -776,8 +845,8 @@ function placeMitigationAtClientX(mitigationId, clientX, canvas, clientY) {
         return;
     }
 
-    mitigation.start = start;
-    mitigation.ownerId = ownerId;
+    originalMitigation.start = start;
+    originalMitigation.ownerId = ownerId;
     sendUpdate();
 }
 
@@ -821,7 +890,7 @@ function getOwnerIdAtClientY(clientY, canvas) {
 }
 
 function showDragPreview(mitigationId, clientX, clientY, canvas, placementOverride) {
-    const mitigation = state.mitigations.find((candidate) => candidate.id === mitigationId);
+    const mitigation = getEffectiveMitigation(mitigationId);
     if (!mitigation) {
         hideDragPreview();
         return;
@@ -853,7 +922,7 @@ function roundToTenth(value) {
 }
 
 function getCooldownPlacementStatus(mitigationId, nextStart, nextOwnerId) {
-    const candidates = state.mitigations
+    const candidates = getEffectiveMitigations()
         .map((mitigation) => ({
             ...mitigation,
             start: mitigation.id === mitigationId ? nextStart : mitigation.start,
@@ -882,8 +951,53 @@ function getCooldownPlacementStatus(mitigationId, nextStart, nextOwnerId) {
 }
 
 function refreshClientResults() {
-    cooldowns = calculateCooldownConflictsClient(state.mitigations);
-    results = calculatePlannerResultsClient(state);
+    const effectiveMitigations = getEffectiveMitigations();
+    cooldowns = calculateCooldownConflictsClient(effectiveMitigations);
+    results = calculatePlannerResultsClient({ ...state, mitigations: effectiveMitigations });
+}
+
+function getEffectiveMitigations() {
+    return state.mitigations.map((mitigation) => {
+        const action = findActionForMitigationClient(mitigation);
+        if (!action) {
+            return mitigation;
+        }
+
+        return {
+            ...mitigation,
+            actionKey: action.id,
+            actionName: action.name,
+            cooldown: Number(action.cooldown) || 0,
+            damageType: action.damageType || mitigation.damageType || 'all',
+            duration: Number(action.duration) || 0,
+            name: action.name,
+            reduction: Number(action.reduction) || 0,
+            targetGroup: action.targetGroup || mitigation.targetGroup || 'all',
+        };
+    });
+}
+
+function getEffectiveMitigation(mitigationId) {
+    return getEffectiveMitigations().find((mitigation) => mitigation.id === mitigationId);
+}
+
+function findActionForMitigationClient(mitigation) {
+    const key = normalizeActionName(mitigation.actionKey || '').toLowerCase();
+    if (key) {
+        const byKey = state.actionCatalog.find((action) => normalizeActionName(action.id).toLowerCase() === key);
+        if (byKey) {
+            return byKey;
+        }
+    }
+
+    const nameKey = normalizeActionName(mitigation.actionName || mitigation.name).toLowerCase();
+    return (
+        state.actionCatalog.find((action) => normalizeActionName(action.name).toLowerCase() === nameKey) ||
+        state.actionCatalog.find((action) =>
+            (action.aliases || []).some((alias) => normalizeActionName(alias).toLowerCase() === nameKey),
+        ) ||
+        null
+    );
 }
 
 function calculatePlannerResultsClient(plannerState) {
@@ -1013,7 +1127,7 @@ function sendUpdate({ renderNow = true } = {}) {
         }
         window.clearTimeout(remoteSaveTimer);
         remoteSaveTimer = window.setTimeout(() => {
-            firebasePlanRef.set(buildRemotePayload(state));
+            firebasePlanRef.set(buildPlanPayload(state));
         }, 120);
         return;
     }
@@ -1030,6 +1144,25 @@ function sendUpdate({ renderNow = true } = {}) {
     }
     if (renderNow) {
         render();
+    }
+}
+
+function sendActionCatalogUpdate({ renderNow = true } = {}) {
+    refreshClientResults();
+    if (renderNow) {
+        render();
+    }
+
+    if (syncMode === 'firebase' && firebaseActionCatalogRef) {
+        window.clearTimeout(actionCatalogSaveTimer);
+        actionCatalogSaveTimer = window.setTimeout(() => {
+            firebaseActionCatalogRef.set(buildActionCatalogPayload(state.actionCatalog));
+        }, 120);
+        return;
+    }
+
+    if (socket?.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'update', clientId, state }));
     }
 }
 
@@ -1146,7 +1279,7 @@ function renderMechanics() {
 }
 
 function renderMitigations() {
-    elements.mitigationsBody.innerHTML = state.mitigations
+    elements.mitigationsBody.innerHTML = getEffectiveMitigations()
         .slice()
         .sort((a, b) => a.start - b.start)
         .map((mitigation) => {
@@ -1179,7 +1312,8 @@ function renderMitigations() {
 
 function renderTimeline() {
     const maxMechanic = Math.max(90, ...state.mechanics.map((mechanic) => mechanic.time));
-    const maxMitigation = Math.max(90, ...state.mitigations.map((mitigation) => mitigation.start + mitigation.duration));
+    const effectiveMitigations = getEffectiveMitigations();
+    const maxMitigation = Math.max(90, ...effectiveMitigations.map((mitigation) => mitigation.start + mitigation.duration));
     const range = Math.ceil(Math.max(maxMechanic, maxMitigation) / 30) * 30;
     const width = Math.max(1100, range * 8);
     const rowTop = 56;
@@ -1219,7 +1353,7 @@ function renderTimeline() {
         .map((_, index) => `<div class="timeline-divider" style="top:${rowTop + index * rowHeight}px"></div>`)
         .join('');
 
-    const bars = state.mitigations
+    const bars = effectiveMitigations
         .map((mitigation) => {
             const left = (mitigation.start / range) * width;
             const barWidth = Math.max(18, (mitigation.duration / range) * width);
@@ -1248,7 +1382,7 @@ function renderTimeline() {
 }
 
 function renderMitigations() {
-    elements.mitigationsBody.innerHTML = state.mitigations
+    elements.mitigationsBody.innerHTML = getEffectiveMitigations()
         .slice()
         .sort((a, b) => a.start - b.start)
         .map((mitigation) => {
@@ -1281,7 +1415,8 @@ function renderMitigations() {
 
 function renderTimeline() {
     const maxMechanic = Math.max(90, ...state.mechanics.map((mechanic) => mechanic.time));
-    const maxMitigation = Math.max(90, ...state.mitigations.map((mitigation) => mitigation.start + mitigation.duration));
+    const effectiveMitigations = getEffectiveMitigations();
+    const maxMitigation = Math.max(90, ...effectiveMitigations.map((mitigation) => mitigation.start + mitigation.duration));
     const range = Math.ceil(Math.max(maxMechanic, maxMitigation) / 30) * 30;
     const width = Math.max(1100, range * 8);
     const rowTop = 56;
@@ -1321,7 +1456,7 @@ function renderTimeline() {
         .map((_, index) => `<div class="timeline-divider" style="top:${rowTop + index * rowHeight}px"></div>`)
         .join('');
 
-    const bars = state.mitigations
+    const bars = effectiveMitigations
         .map((mitigation) => {
             const left = (mitigation.start / range) * width;
             const barWidth = Math.max(18, (mitigation.duration / range) * width);

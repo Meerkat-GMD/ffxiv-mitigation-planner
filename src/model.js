@@ -5,7 +5,7 @@
 const DAMAGE_TYPES = ['all', 'magical', 'physical', 'darkness'];
 const TARGET_GROUPS = ['all', 'owner', 'tanks', 'healers', 'dps'];
 
-const { DEFAULT_ACTION_CATALOG, getJobRole, normalizeActionCatalog, normalizeJob, resolveAction } = require('./actions');
+const { DEFAULT_ACTION_CATALOG, actionKey, getJobRole, normalizeActionCatalog, normalizeJob, resolveAction } = require('./actions');
 
 const DEFAULT_PARTY = [
     { id: 'mt', name: 'MT', role: 'tank', job: 'gnb', maxHp: 156000 },
@@ -127,8 +127,9 @@ function normalizeMechanic(mechanic, index) {
 }
 
 function normalizeMitigation(mitigation, index, party = DEFAULT_PARTY, actionCatalog = DEFAULT_ACTION_CATALOG) {
-    const action = resolveAction(mitigation.name, actionCatalog);
-    const cooldown = clampNumber(mitigation.cooldown, action.cooldown, 0, 9999);
+    const action = findActionForMitigation(mitigation, actionCatalog);
+    const resolvedAction = action || resolveAction(mitigation.name, actionCatalog);
+    const cooldown = action ? action.cooldown : clampNumber(mitigation.cooldown, resolvedAction.cooldown, 0, 9999);
     const fallbackOwner = party[0]?.id || 'mt';
     const requestedOwnerId = mitigation.ownerId === 'ot' ? 'st' : mitigation.ownerId;
     const ownerId = party.some((member) => member.id === requestedOwnerId) ? requestedOwnerId : fallbackOwner;
@@ -136,16 +137,30 @@ function normalizeMitigation(mitigation, index, party = DEFAULT_PARTY, actionCat
     return {
         id: String(mitigation.id || `mit-${index + 1}`),
         ownerId,
-        name: String(mitigation.name || `Mitigation ${index + 1}`),
-        actionName: action.name,
-        actionKey: action.key,
+        name: action ? action.name : String(mitigation.name || `Mitigation ${index + 1}`),
+        actionName: action ? action.name : resolvedAction.name,
+        actionKey: action ? action.id : resolvedAction.key,
         start: quantizeSeconds(clampNumber(mitigation.start, 0, 0, 9999)),
-        duration: quantizeSeconds(clampNumber(mitigation.duration, 10, 0, 9999)),
+        duration: quantizeSeconds(action ? action.duration : clampNumber(mitigation.duration, 10, 0, 9999)),
         cooldown: quantizeSeconds(cooldown),
-        reduction: clampNumber(mitigation.reduction, 0, 0, 100),
-        damageType: DAMAGE_TYPES.includes(mitigation.damageType) ? mitigation.damageType : 'all',
-        targetGroup: TARGET_GROUPS.includes(mitigation.targetGroup) ? mitigation.targetGroup : 'all',
+        reduction: action ? action.reduction : clampNumber(mitigation.reduction, 0, 0, 100),
+        damageType: action ? action.damageType : DAMAGE_TYPES.includes(mitigation.damageType) ? mitigation.damageType : 'all',
+        targetGroup: action ? action.targetGroup : TARGET_GROUPS.includes(mitigation.targetGroup) ? mitigation.targetGroup : 'all',
     };
+}
+
+function findActionForMitigation(mitigation, actionCatalog = DEFAULT_ACTION_CATALOG) {
+    const catalog = normalizeActionCatalog(actionCatalog);
+    const key = String(mitigation.actionKey || '').trim().toLowerCase();
+    if (key) {
+        const byKey = catalog.find((candidate) => String(candidate.id).toLowerCase() === key || actionKey(candidate.name) === key);
+        if (byKey) {
+            return byKey;
+        }
+    }
+
+    const resolved = resolveAction(mitigation.name, catalog);
+    return catalog.find((candidate) => actionKey(candidate.name) === resolved.key) || null;
 }
 
 function quantizeSeconds(value) {

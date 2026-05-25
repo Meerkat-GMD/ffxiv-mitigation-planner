@@ -303,6 +303,49 @@ test('normalizes known mitigation cooldowns and canonical action keys', () => {
     assert.equal(normalized.mitigations[0].cooldown, 60);
 });
 
+test('uses shared action catalog values for existing mitigations with matching action keys', () => {
+    const normalized = normalizePlannerState({
+        actionCatalog: [
+            {
+                id: 'reprisal',
+                name: 'Edited Reprisal',
+                cooldown: 80,
+                duration: 22,
+                reduction: 15,
+                damageType: 'magical',
+                targetGroup: 'all',
+                jobs: ['gnb'],
+                aliases: ['Reprisal'],
+            },
+        ],
+        party: [{ id: 'mt', name: 'MT', role: 'tank', job: 'gnb', maxHp: 100000 }],
+        mechanics: [],
+        mitigations: [
+            {
+                id: 'placed-reprisal',
+                ownerId: 'mt',
+                actionKey: 'reprisal',
+                name: 'Reprisal',
+                start: 10,
+                duration: 5,
+                cooldown: 10,
+                reduction: 1,
+                damageType: 'all',
+                targetGroup: 'owner',
+            },
+        ],
+    });
+
+    assert.equal(normalized.mitigations[0].name, 'Edited Reprisal');
+    assert.equal(normalized.mitigations[0].actionName, 'Edited Reprisal');
+    assert.equal(normalized.mitigations[0].actionKey, 'reprisal');
+    assert.equal(normalized.mitigations[0].cooldown, 80);
+    assert.equal(normalized.mitigations[0].duration, 22);
+    assert.equal(normalized.mitigations[0].reduction, 15);
+    assert.equal(normalized.mitigations[0].damageType, 'magical');
+    assert.equal(normalized.mitigations[0].targetGroup, 'all');
+});
+
 test('marks repeated mitigation uses inside cooldown as unavailable', () => {
     const mitigations = normalizePlannerState({
         party: [{ id: 'p1', name: 'P1', role: 'dps', maxHp: 100000 }],
