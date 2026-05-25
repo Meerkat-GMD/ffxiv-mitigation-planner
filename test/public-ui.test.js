@@ -29,11 +29,14 @@ test('timeline renders clear dividers between party lanes', () => {
     assert.match(css, /\.timeline-divider/);
 });
 
-test('planner has visible controls for adding, saving, and loading plans', () => {
-    assert.match(html, /id="quickAddMechanicButton"/);
+test('planner has visible controls for creating timelines, saving, and loading plans', () => {
+    assert.match(html, /id="newTimelineButton"/);
+    assert.doesNotMatch(html, /id="quickAddMechanicButton"/);
     assert.match(html, /id="savePlanButton"/);
     assert.match(html, /id="loadPlanButton"/);
     assert.match(html, /id="loadPlanInput"/);
+    assert.match(appJs, /function createNewTimeline/);
+    assert.match(appJs, /function buildPlanUrl/);
     assert.match(appJs, /function exportPlanToFile/);
     assert.match(appJs, /function importPlanFile/);
 });
