@@ -115,6 +115,142 @@ test('calculates multiplicative mitigation and survival for each targeted player
     assert.deepEqual(result.activeMitigationNames, ['Reprisal', 'Addle']);
 });
 
+test('applies estimated shields after percentage mitigation', () => {
+    const normalized = normalizePlannerState({
+        actionCatalog: [
+            {
+                id: 'adloquium',
+                name: 'Adloquium',
+                cooldown: 2.5,
+                duration: 30,
+                reduction: 0,
+                shieldPotency: 540,
+                shieldBaseActionKey: 'adloquium',
+                damageType: 'all',
+                targetGroup: 'owner',
+                jobs: ['sch'],
+            },
+            {
+                id: 'concitation',
+                name: 'Concitation',
+                cooldown: 2.5,
+                duration: 30,
+                reduction: 10,
+                shieldPotency: 360,
+                shieldBaseActionKey: 'adloquium',
+                damageType: 'all',
+                targetGroup: 'all',
+                jobs: ['sch'],
+            },
+        ],
+        party: [
+            {
+                id: 'h1',
+                name: 'H1',
+                role: 'healer',
+                job: 'sch',
+                maxHp: 90000,
+                shieldBaseActionKey: 'adloquium',
+                shieldBaseAmount: 30000,
+                shieldBaseCritAmount: 51000,
+            },
+        ],
+        mechanics: [
+            {
+                id: 'm-shield',
+                time: 10,
+                name: 'Shielded raidwide',
+                damage: 100000,
+                damageType: 'magical',
+                targetGroup: 'all',
+            },
+        ],
+        mitigations: [
+            {
+                id: 'concitation-use',
+                ownerId: 'mt',
+                actionKey: 'concitation',
+                name: 'Concitation',
+                start: 0,
+            },
+        ],
+    });
+
+    const result = calculateMechanicResult(normalized.mechanics[0], normalized.party, normalized.mitigations);
+
+    assert.equal(result.members.mt.effectiveDamage, 70000);
+    assert.equal(result.members.mt.absorbedShield, 20000);
+    assert.equal(result.members.mt.remainingHp, 20000);
+});
+
+test('uses the critical personal shield baseline when a shield placement is marked critical', () => {
+    const normalized = normalizePlannerState({
+        actionCatalog: [
+            {
+                id: 'adloquium',
+                name: 'Adloquium',
+                cooldown: 2.5,
+                duration: 30,
+                reduction: 0,
+                shieldPotency: 540,
+                shieldBaseActionKey: 'adloquium',
+                damageType: 'all',
+                targetGroup: 'owner',
+                jobs: ['sch'],
+            },
+            {
+                id: 'concitation',
+                name: 'Concitation',
+                cooldown: 2.5,
+                duration: 30,
+                reduction: 0,
+                shieldPotency: 360,
+                shieldBaseActionKey: 'adloquium',
+                damageType: 'all',
+                targetGroup: 'all',
+                jobs: ['sch'],
+            },
+        ],
+        party: [
+            {
+                id: 'h1',
+                name: 'H1',
+                role: 'healer',
+                job: 'sch',
+                maxHp: 90000,
+                shieldBaseActionKey: 'adloquium',
+                shieldBaseAmount: 30000,
+                shieldBaseCritAmount: 51000,
+            },
+        ],
+        mechanics: [
+            {
+                id: 'm-shield-crit',
+                time: 10,
+                name: 'Shielded raidwide',
+                damage: 100000,
+                damageType: 'magical',
+                targetGroup: 'all',
+            },
+        ],
+        mitigations: [
+            {
+                id: 'concitation-crit',
+                ownerId: 'mt',
+                actionKey: 'concitation',
+                name: 'Concitation',
+                start: 0,
+                shieldCrit: true,
+            },
+        ],
+    });
+
+    const result = calculateMechanicResult(normalized.mechanics[0], normalized.party, normalized.mitigations);
+
+    assert.equal(result.members.mt.absorbedShield, 34000);
+    assert.equal(result.members.mt.remainingHp, 24000);
+});
+
 test('does not stack duplicate action effects and keeps the latest active use', () => {
     const result = calculateMechanicResult(
         {
@@ -448,6 +584,31 @@ test('uses shared action catalog values for existing mitigations with matching a
     assert.equal(normalized.mitigations[0].reduction, 15);
     assert.equal(normalized.mitigations[0].damageType, 'magical');
     assert.equal(normalized.mitigations[0].targetGroup, 'all');
+});
+
+test('keeps existing shared action edits while adding newly shipped default actions', () => {
+    const normalized = normalizePlannerState({
+        actionCatalog: [
+            {
+                id: 'reprisal',
+                name: 'Edited Reprisal',
+                cooldown: 80,
+                duration: 22,
+                reduction: 15,
+                damageType: 'all',
+                targetGroup: 'all',
+                jobs: ['gnb'],
+                aliases: ['Reprisal'],
+            },
+        ],
+        party: [],
+        mechanics: [],
+        mitigations: [],
+    });
+
+    assert.equal(normalized.actionCatalog.find((action) => action.id === 'reprisal')?.name, 'Edited Reprisal');
+    assert.ok(normalized.actionCatalog.some((action) => action.id === 'adloquium'));
+    assert.ok(normalized.actionCatalog.some((action) => action.id === 'concitation'));
 });
 
 test('marks repeated mitigation uses inside cooldown as unavailable', () => {

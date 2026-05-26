@@ -65,6 +65,18 @@ test('returns job-specific mitigation presets for timeline context menus', () =>
     assert.ok(!redMage.includes('Feint'));
 });
 
+test('returns shield presets with potency metadata for scholar barriers', () => {
+    const scholar = getActionPresetsForMember('healer', 'sch');
+    const adloquium = scholar.find((preset) => preset.name === 'Adloquium');
+    const concitation = scholar.find((preset) => preset.name === 'Concitation');
+
+    assert.equal(resolveAction('고무격려책').name, 'Adloquium');
+    assert.equal(resolveAction('의기왕성책').name, 'Concitation');
+    assert.equal(adloquium.shieldPotency, 540);
+    assert.equal(concitation.shieldPotency, 360);
+    assert.equal(concitation.shieldBaseActionKey, 'adloquium');
+});
+
 test('resolves FFXIV jobs to planner roles', () => {
     assert.equal(getJobRole('pld'), 'tank');
     assert.equal(getJobRole('SCH'), 'healer');
@@ -79,16 +91,20 @@ test('uses editable action catalog entries when resolving and filtering presets'
             name: 'Custom RDM Barrier',
             cooldown: 42,
             duration: 8,
-            reduction: 12,
-            damageType: 'magical',
-            targetGroup: 'all',
-            jobs: ['rdm'],
+                reduction: 12,
+                shieldPotency: 500,
+                shieldBaseActionKey: 'custom-rdm',
+                damageType: 'magical',
+                targetGroup: 'all',
+                jobs: ['rdm'],
         },
     ]);
 
     assert.deepEqual(getActionPresetsForMember('dps', 'rdm', catalog).map((preset) => preset.name), [
         'Custom RDM Barrier',
     ]);
+    assert.equal(getActionPresetsForMember('dps', 'rdm', catalog)[0].shieldPotency, 500);
+    assert.equal(getActionPresetsForMember('dps', 'rdm', catalog)[0].shieldBaseActionKey, 'custom-rdm');
     assert.deepEqual(getActionPresetsForMember('dps', 'blm', catalog), []);
     assert.equal(resolveAction('Custom RDM Barrier', catalog).cooldown, 42);
 });

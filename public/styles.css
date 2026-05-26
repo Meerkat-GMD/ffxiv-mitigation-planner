@@ -160,7 +160,7 @@ button:hover {
 
 .party-grid {
     display: grid;
-    grid-template-columns: 72px minmax(88px, 1fr) 92px;
+    grid-template-columns: 72px minmax(88px, 1fr) 92px 92px 92px;
     gap: 8px;
     padding: 12px;
 }
@@ -237,7 +237,7 @@ table {
 }
 
 .mitigation-panel table {
-    min-width: 920px;
+    min-width: 1010px;
 }
 
 th,
@@ -446,7 +446,20 @@ input[type="number"] {
 }
 
 .editor-table-wrap table {
-    min-width: 980px;
+    min-width: 1120px;
+}
+
+.check-cell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 76px;
+}
+
+.check-cell input {
+    width: auto;
+    min-height: 0;
 }
 
 body.editor-open {

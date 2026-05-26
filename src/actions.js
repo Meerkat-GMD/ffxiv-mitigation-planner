@@ -63,8 +63,35 @@ const DEFAULT_ACTION_CATALOG = [
     ]),
     entry('heart-of-light', 'Heart of Light', 90, 15, 10, 'magical', 'all', ['gnb'], ['빛의 심장']),
     entry('aquaveil', 'Aquaveil', 60, 8, 15, 'all', 'owner', ['whm'], ['물의 장막']),
-    entry('divine-benison', 'Divine Benison', 30, 15, 15, 'all', 'owner', ['whm'], ['신의 이름']),
+    entry('divine-benison', 'Divine Benison', 30, 15, 0, 'all', 'owner', ['whm'], ['신의 이름'], {
+        shieldBaseActionKey: 'divine-benison',
+        shieldPotency: 500,
+    }),
+    entry('divine-caress', 'Divine Caress', 1, 10, 0, 'all', 'all', ['whm'], ['신성한 손길'], {
+        shieldBaseActionKey: 'divine-benison',
+        shieldPotency: 400,
+    }),
     entry('temperance', 'Temperance', 120, 20, 10, 'all', 'all', ['whm'], ['절제']),
+    entry('adloquium', 'Adloquium', 2.5, 30, 0, 'all', 'owner', ['sch'], ['고무격려책'], {
+        shieldBaseActionKey: 'adloquium',
+        shieldPotency: 540,
+    }),
+    entry('succor', 'Succor', 2.5, 30, 0, 'all', 'all', ['sch'], ['사기고양책'], {
+        shieldBaseActionKey: 'adloquium',
+        shieldPotency: 320,
+    }),
+    entry('concitation', 'Concitation', 2.5, 30, 0, 'all', 'all', ['sch'], ['의기왕성책'], {
+        shieldBaseActionKey: 'adloquium',
+        shieldPotency: 360,
+    }),
+    entry('manifestation', 'Manifestation', 2.5, 30, 0, 'all', 'owner', ['sch'], ['현시'], {
+        shieldBaseActionKey: 'adloquium',
+        shieldPotency: 648,
+    }),
+    entry('accession', 'Accession', 2.5, 30, 0, 'all', 'all', ['sch'], ['강림'], {
+        shieldBaseActionKey: 'adloquium',
+        shieldPotency: 432,
+    }),
     entry('sacred-soil', 'Sacred Soil', 30, 15, 10, 'all', 'all', ['sch'], ['야전치유진']),
     entry('expedient', 'Expedient', 120, 20, 10, 'all', 'all', ['sch'], ['질풍노도계']),
     entry('collective-unconscious', 'Collective Unconscious', 60, 18, 10, 'all', 'all', ['ast'], [
@@ -89,8 +116,20 @@ const DEFAULT_ACTION_CATALOG = [
     entry('tempera-grassa', 'Tempera Grassa', 120, 10, 10, 'all', 'all', ['pct'], ['템페라 그라사']),
 ];
 
-function entry(id, name, cooldown, duration, reduction, damageType, targetGroup, jobs, aliases = []) {
-    return { aliases, cooldown, damageType, duration, id, jobs, name, reduction, targetGroup };
+function entry(id, name, cooldown, duration, reduction, damageType, targetGroup, jobs, aliases = [], metadata = {}) {
+    return {
+        aliases,
+        cooldown,
+        damageType,
+        duration,
+        id,
+        jobs,
+        name,
+        reduction,
+        shieldBaseActionKey: metadata.shieldBaseActionKey || '',
+        shieldPotency: metadata.shieldPotency || 0,
+        targetGroup,
+    };
 }
 
 function normalizeActionName(name) {
@@ -117,6 +156,8 @@ function normalizeCatalogEntry(candidate, index) {
         cooldown: clampNumber(candidate.cooldown, fallback.cooldown, 0, 9999),
         duration: clampNumber(candidate.duration, fallback.duration, 0, 9999),
         reduction: clampNumber(candidate.reduction, fallback.reduction, 0, 100),
+        shieldBaseActionKey: String(candidate.shieldBaseActionKey || fallback.shieldBaseActionKey || ''),
+        shieldPotency: clampNumber(candidate.shieldPotency, fallback.shieldPotency || 0, 0, 99999),
         damageType: DAMAGE_TYPES.includes(candidate.damageType) ? candidate.damageType : fallback.damageType,
         targetGroup: TARGET_GROUPS.includes(candidate.targetGroup) ? candidate.targetGroup : fallback.targetGroup,
         jobs,
@@ -184,8 +225,11 @@ function toPreset(candidate) {
         cooldown: candidate.cooldown,
         damageType: candidate.damageType,
         duration: candidate.duration,
+        id: candidate.id,
         name: candidate.name,
         reduction: candidate.reduction,
+        shieldBaseActionKey: candidate.shieldBaseActionKey,
+        shieldPotency: candidate.shieldPotency,
         targetGroup: candidate.targetGroup,
     };
 }

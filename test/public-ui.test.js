@@ -84,6 +84,17 @@ test('client survival calculation collapses duplicate active action effects', ()
     assert.match(appJs, /selectNonStackingMitigationsClient\(\s*mitigations\.filter/);
 });
 
+test('planner exposes shield baseline and critical shield controls', () => {
+    assert.match(appJs, /shieldBaseAmount/);
+    assert.match(appJs, /shieldBaseCritAmount/);
+    assert.match(appJs, /shieldPotency/);
+    assert.match(appJs, /shieldBaseActionKey/);
+    assert.match(appJs, /data-field="shieldCrit"/);
+    assert.match(appJs, /function estimateShieldAmountClient/);
+    assert.match(appJs, /function mergeActionCatalogWithDefaults/);
+    assert.match(appJs, /absorbedShield/);
+});
+
 test('timeline supports prepull negative mitigation placement', () => {
     assert.match(appJs, /data-range-start/);
     assert.match(appJs, /data-range-end/);

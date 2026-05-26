@@ -18,6 +18,11 @@ const DEFAULT_PARTY = [
     { id: 'd4', name: 'D4', role: 'dps', job: 'pct', maxHp: 95000 },
 ];
 
+const DEFAULT_SHIELD_BASE_ACTION_BY_JOB = {
+    sch: 'adloquium',
+    whm: 'divine-benison',
+};
+
 const DEFAULT_MECHANICS = [
     {
         id: 'm-1',
@@ -80,7 +85,7 @@ const DEFAULT_MITIGATIONS = [
 
 function normalizePlannerState(state) {
     const party = DEFAULT_PARTY.map((slot, index) => normalizeMember(normalizeArray(state.party, DEFAULT_PARTY)[index] || {}, index));
-    const actionCatalog = normalizeActionCatalog(state.actionCatalog || DEFAULT_ACTION_CATALOG);
+    const actionCatalog = mergeActionCatalogWithDefaults(normalizeActionCatalog(state.actionCatalog || DEFAULT_ACTION_CATALOG));
 
     return {
         actionCatalog,
@@ -90,6 +95,19 @@ function normalizePlannerState(state) {
             normalizeMitigation(mitigation, index, party, actionCatalog),
         ),
     };
+}
+
+function mergeActionCatalogWithDefaults(actionCatalog) {
+    const merged = [...actionCatalog];
+    const ids = new Set(merged.map((action) => String(action.id).toLowerCase()));
+    for (const action of normalizeActionCatalog(DEFAULT_ACTION_CATALOG)) {
+        const id = String(action.id).toLowerCase();
+        if (id && !ids.has(id)) {
+            merged.push(action);
+            ids.add(id);
+        }
+    }
+    return merged;
 }
 
 function normalizeArray(value, fallback) {
@@ -112,6 +130,9 @@ function normalizeMember(member, index) {
         role,
         job,
         maxHp: clampNumber(member.maxHp, fallback.maxHp, 1, 999999),
+        shieldBaseActionKey: String(member.shieldBaseActionKey || DEFAULT_SHIELD_BASE_ACTION_BY_JOB[job] || ''),
+        shieldBaseAmount: clampNumber(member.shieldBaseAmount, 0, 0, 999999),
+        shieldBaseCritAmount: clampNumber(member.shieldBaseCritAmount, member.shieldBaseAmount || 0, 0, 999999),
     };
 }
 
@@ -130,6 +151,11 @@ function normalizeMitigation(mitigation, index, party = DEFAULT_PARTY, actionCat
     const action = findActionForMitigation(mitigation, actionCatalog);
     const resolvedAction = action || resolveAction(mitigation.name, actionCatalog);
     const cooldown = action ? action.cooldown : clampNumber(mitigation.cooldown, resolvedAction.cooldown, 0, 9999);
+    const shieldPotency = action ? action.shieldPotency : clampNumber(mitigation.shieldPotency, 0, 0, 99999);
+    const shieldBaseActionKey = action ? action.shieldBaseActionKey : String(mitigation.shieldBaseActionKey || '');
+    const shieldBaseAction = shieldBaseActionKey
+        ? normalizeActionCatalog(actionCatalog).find((candidate) => String(candidate.id).toLowerCase() === shieldBaseActionKey.toLowerCase())
+        : null;
     const fallbackOwner = party[0]?.id || 'mt';
     const requestedOwnerId = mitigation.ownerId === 'ot' ? 'st' : mitigation.ownerId;
     const ownerId = party.some((member) => member.id === requestedOwnerId) ? requestedOwnerId : fallbackOwner;
@@ -145,6 +171,10 @@ function normalizeMitigation(mitigation, index, party = DEFAULT_PARTY, actionCat
         cooldown: quantizeSeconds(cooldown),
         reduction: action ? action.reduction : clampNumber(mitigation.reduction, 0, 0, 100),
         damageType: action ? action.damageType : DAMAGE_TYPES.includes(mitigation.damageType) ? mitigation.damageType : 'all',
+        shieldBaseActionKey,
+        shieldBasePotency: shieldBaseAction?.shieldPotency || shieldPotency,
+        shieldCrit: Boolean(mitigation.shieldCrit),
+        shieldPotency,
         targetGroup: action ? action.targetGroup : TARGET_GROUPS.includes(mitigation.targetGroup) ? mitigation.targetGroup : 'all',
     };
 }
@@ -205,7 +235,10 @@ function calculateMechanicResult(mechanic, party, mitigations) {
 
         const activeMitigations = getApplicableMitigations(mechanic, mitigations, member, cooldownStatuses);
         const multiplier = activeMitigations.reduce((value, mitigation) => value * (1 - mitigation.reduction / 100), 1);
-        const effectiveDamage = Math.round(mechanic.damage * multiplier);
+        const mitigatedDamage = Math.round(mechanic.damage * multiplier);
+        const totalShield = activeMitigations.reduce((value, mitigation) => value + estimateShieldAmount(mitigation, party), 0);
+        const absorbedShield = Math.min(mitigatedDamage, totalShield);
+        const effectiveDamage = Math.max(0, mitigatedDamage - absorbedShield);
         const remainingHp = member.maxHp - effectiveDamage;
         effectiveDamageByMember[member.id] = effectiveDamage;
 
@@ -220,8 +253,10 @@ function calculateMechanicResult(mechanic, party, mitigations) {
 
         members[member.id] = {
             targeted: true,
+            absorbedShield,
             remainingHp,
             effectiveDamage,
+            mitigatedDamage,
             activeMitigationNames: activeMitigations.map((mitigation) => mitigation.name),
         };
     }
@@ -234,6 +269,26 @@ function calculateMechanicResult(mechanic, party, mitigations) {
         effectiveDamageByMember,
         members,
     };
+}
+
+function estimateShieldAmount(mitigation, party) {
+    const shieldPotency = Number(mitigation.shieldPotency) || 0;
+    if (shieldPotency <= 0) {
+        return 0;
+    }
+
+    const caster = party.find((member) => member.id === mitigation.ownerId) || party[0];
+    if (!caster) {
+        return 0;
+    }
+
+    const baseAmount = Number(mitigation.shieldCrit ? caster.shieldBaseCritAmount : caster.shieldBaseAmount) || 0;
+    const basePotency = Number(mitigation.shieldBasePotency) || shieldPotency;
+    if (baseAmount <= 0 || basePotency <= 0) {
+        return 0;
+    }
+
+    return Math.round(baseAmount * (shieldPotency / basePotency));
 }
 
 function calculateCooldownConflicts(mitigations) {
@@ -338,6 +393,7 @@ module.exports = {
     calculatePlannerResults,
     getApplicableMitigations,
     groupIncludesMember,
+    estimateShieldAmount,
     normalizePlannerState,
     quantizeSeconds,
 };
