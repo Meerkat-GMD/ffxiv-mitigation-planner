@@ -78,6 +78,12 @@ test('static XIVAPI fallback prefers assigned PvE action icons', () => {
     assert.match(appJs, /candidate\?\.fields\?\.IsPvP !== true/);
 });
 
+test('client survival calculation collapses duplicate active action effects', () => {
+    assert.match(appJs, /function selectNonStackingMitigationsClient/);
+    assert.match(appJs, /mitigationEffectKeyClient/);
+    assert.match(appJs, /selectNonStackingMitigationsClient\(\s*mitigations\.filter/);
+});
+
 test('default planner state is available as a static asset for GitHub Pages', () => {
     const defaultStatePath = path.join(__dirname, '..', 'public', 'default-state.json');
     const defaultState = JSON.parse(fs.readFileSync(defaultStatePath, 'utf8'));

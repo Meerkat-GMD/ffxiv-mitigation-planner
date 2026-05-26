@@ -115,6 +115,90 @@ test('calculates multiplicative mitigation and survival for each targeted player
     assert.deepEqual(result.activeMitigationNames, ['Reprisal', 'Addle']);
 });
 
+test('does not stack duplicate action effects and keeps the latest active use', () => {
+    const result = calculateMechanicResult(
+        {
+            id: 'm-duplicate',
+            time: 22,
+            name: 'Overlapping raidwide',
+            damage: 100000,
+            damageType: 'magical',
+            targetGroup: 'all',
+        },
+        [
+            { id: 'mt', name: 'MT', role: 'tank', maxHp: 150000 },
+            { id: 'st', name: 'ST', role: 'tank', maxHp: 150000 },
+        ],
+        [
+            {
+                id: 'mt-reprisal',
+                ownerId: 'mt',
+                name: 'Reprisal',
+                actionKey: 'reprisal',
+                start: 10,
+                duration: 15,
+                reduction: 10,
+                damageType: 'all',
+                targetGroup: 'all',
+            },
+            {
+                id: 'st-reprisal',
+                ownerId: 'st',
+                name: 'Reprisal',
+                actionKey: 'reprisal',
+                start: 20,
+                duration: 15,
+                reduction: 10,
+                damageType: 'all',
+                targetGroup: 'all',
+            },
+        ],
+    );
+
+    assert.equal(result.effectiveDamageByMember.mt, 90000);
+    assert.deepEqual(result.activeMitigationNames, ['Reprisal']);
+    assert.deepEqual(result.members.mt.activeMitigationNames, ['Reprisal']);
+});
+
+test('different action effects still stack multiplicatively', () => {
+    const result = calculateMechanicResult(
+        {
+            id: 'm-stack',
+            time: 22,
+            name: 'Stacking raidwide',
+            damage: 100000,
+            damageType: 'magical',
+            targetGroup: 'all',
+        },
+        [{ id: 'mt', name: 'MT', role: 'tank', maxHp: 150000 }],
+        [
+            {
+                id: 'reprisal',
+                name: 'Reprisal',
+                actionKey: 'reprisal',
+                start: 10,
+                duration: 15,
+                reduction: 10,
+                damageType: 'all',
+                targetGroup: 'all',
+            },
+            {
+                id: 'addle',
+                name: 'Addle',
+                actionKey: 'addle',
+                start: 20,
+                duration: 15,
+                reduction: 10,
+                damageType: 'magical',
+                targetGroup: 'all',
+            },
+        ],
+    );
+
+    assert.equal(result.effectiveDamageByMember.mt, 81000);
+    assert.deepEqual(result.activeMitigationNames, ['Reprisal', 'Addle']);
+});
+
 test('target groups restrict mechanics and mitigations', () => {
     const result = calculateMechanicResult(
         {

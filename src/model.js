@@ -215,7 +215,7 @@ function calculateMechanicResult(mechanic, party, mitigations) {
         lowestRemainingHp = Math.min(lowestRemainingHp, remainingHp);
 
         for (const mitigation of activeMitigations) {
-            mechanicActiveMitigations.set(mitigation.id, mitigation.name);
+            mechanicActiveMitigations.set(mitigationEffectKey(mitigation), mitigation.name);
         }
 
         members[member.id] = {
@@ -270,7 +270,7 @@ function calculateCooldownConflicts(mitigations) {
 }
 
 function getApplicableMitigations(mechanic, mitigations, member, cooldownStatuses = calculateCooldownConflicts(mitigations)) {
-    return mitigations.filter((mitigation) => {
+    const activeMitigations = mitigations.filter((mitigation) => {
         const start = Number(mitigation.start);
         const end = start + Number(mitigation.duration);
         const cooldownStatus = cooldownStatuses.get(mitigation.id);
@@ -283,6 +283,28 @@ function getApplicableMitigations(mechanic, mitigations, member, cooldownStatuse
             groupIncludesMember(mitigation.targetGroup, member, mitigation.ownerId)
         );
     });
+
+    return selectNonStackingMitigations(activeMitigations);
+}
+
+function selectNonStackingMitigations(mitigations) {
+    const selectedByEffect = new Map();
+    const sorted = mitigations
+        .slice()
+        .sort((a, b) => Number(a.start) - Number(b.start) || String(a.id).localeCompare(String(b.id)));
+
+    for (const mitigation of sorted) {
+        selectedByEffect.set(mitigationEffectKey(mitigation), mitigation);
+    }
+
+    return [...selectedByEffect.values()].sort(
+        (a, b) => Number(a.start) - Number(b.start) || String(a.id).localeCompare(String(b.id)),
+    );
+}
+
+function mitigationEffectKey(mitigation) {
+    const action = resolveAction(mitigation.actionName || mitigation.name);
+    return mitigation.actionKey || action.key || String(mitigation.name || '').trim().toLowerCase();
 }
 
 function mitigationMatchesDamageType(mitigation, mechanic) {
