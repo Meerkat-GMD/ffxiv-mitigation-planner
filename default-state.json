@@ -8,6 +8,8 @@
         "cooldown": 60,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -26,6 +28,8 @@
         "cooldown": 90,
         "duration": 20,
         "reduction": 20,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -45,6 +49,8 @@
         "cooldown": 120,
         "duration": 15,
         "reduction": 40,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -61,6 +67,8 @@
         "cooldown": 420,
         "duration": 10,
         "reduction": 100,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -76,6 +84,8 @@
         "cooldown": 5,
         "duration": 8,
         "reduction": 15,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -92,6 +102,8 @@
         "cooldown": 10,
         "duration": 8,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -107,6 +119,8 @@
         "cooldown": 90,
         "duration": 30,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -122,6 +136,8 @@
         "cooldown": 120,
         "duration": 18,
         "reduction": 15,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -137,6 +153,8 @@
         "cooldown": 120,
         "duration": 15,
         "reduction": 30,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "physical",
         "targetGroup": "owner",
         "jobs": [
@@ -152,6 +170,8 @@
         "cooldown": 120,
         "duration": 15,
         "reduction": 40,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -167,6 +187,8 @@
         "cooldown": 240,
         "duration": 10,
         "reduction": 100,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -182,6 +204,8 @@
         "cooldown": 25,
         "duration": 8,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -197,6 +221,8 @@
         "cooldown": 25,
         "duration": 8,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -212,6 +238,8 @@
         "cooldown": 90,
         "duration": 30,
         "reduction": 15,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -227,6 +255,8 @@
         "cooldown": 120,
         "duration": 15,
         "reduction": 30,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -242,6 +272,8 @@
         "cooldown": 300,
         "duration": 10,
         "reduction": 100,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -257,6 +289,8 @@
         "cooldown": 60,
         "duration": 10,
         "reduction": 20,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "magical",
         "targetGroup": "owner",
         "jobs": [
@@ -272,6 +306,8 @@
         "cooldown": 15,
         "duration": 7,
         "reduction": 25,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -287,6 +323,8 @@
         "cooldown": 60,
         "duration": 10,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -302,6 +340,8 @@
         "cooldown": 90,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "magical",
         "targetGroup": "all",
         "jobs": [
@@ -317,6 +357,8 @@
         "cooldown": 120,
         "duration": 15,
         "reduction": 30,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -332,6 +374,8 @@
         "cooldown": 120,
         "duration": 15,
         "reduction": 40,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -347,6 +391,8 @@
         "cooldown": 360,
         "duration": 10,
         "reduction": 100,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -362,6 +408,8 @@
         "cooldown": 90,
         "duration": 20,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -377,6 +425,8 @@
         "cooldown": 25,
         "duration": 8,
         "reduction": 15,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -393,6 +443,8 @@
         "cooldown": 90,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "magical",
         "targetGroup": "all",
         "jobs": [
@@ -408,6 +460,8 @@
         "cooldown": 60,
         "duration": 8,
         "reduction": 15,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -422,7 +476,9 @@
         "name": "Divine Benison",
         "cooldown": 30,
         "duration": 15,
-        "reduction": 15,
+        "reduction": 0,
+        "shieldBaseActionKey": "divine-benison",
+        "shieldPotency": 500,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -433,11 +489,30 @@
         ]
       },
       {
+        "id": "divine-caress",
+        "name": "Divine Caress",
+        "cooldown": 1,
+        "duration": 10,
+        "reduction": 0,
+        "shieldBaseActionKey": "divine-benison",
+        "shieldPotency": 400,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "whm"
+        ],
+        "aliases": [
+          "신성한 손길"
+        ]
+      },
+      {
         "id": "temperance",
         "name": "Temperance",
         "cooldown": 120,
         "duration": 20,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -448,11 +523,98 @@
         ]
       },
       {
+        "id": "adloquium",
+        "name": "Adloquium",
+        "cooldown": 2.5,
+        "duration": 30,
+        "reduction": 0,
+        "shieldBaseActionKey": "adloquium",
+        "shieldPotency": 540,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "sch"
+        ],
+        "aliases": [
+          "고무격려책"
+        ]
+      },
+      {
+        "id": "succor",
+        "name": "Succor",
+        "cooldown": 2.5,
+        "duration": 30,
+        "reduction": 0,
+        "shieldBaseActionKey": "adloquium",
+        "shieldPotency": 320,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "sch"
+        ],
+        "aliases": [
+          "사기고양책"
+        ]
+      },
+      {
+        "id": "concitation",
+        "name": "Concitation",
+        "cooldown": 2.5,
+        "duration": 30,
+        "reduction": 0,
+        "shieldBaseActionKey": "adloquium",
+        "shieldPotency": 360,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "sch"
+        ],
+        "aliases": [
+          "의기왕성책"
+        ]
+      },
+      {
+        "id": "manifestation",
+        "name": "Manifestation",
+        "cooldown": 2.5,
+        "duration": 30,
+        "reduction": 0,
+        "shieldBaseActionKey": "adloquium",
+        "shieldPotency": 648,
+        "damageType": "all",
+        "targetGroup": "owner",
+        "jobs": [
+          "sch"
+        ],
+        "aliases": [
+          "현시"
+        ]
+      },
+      {
+        "id": "accession",
+        "name": "Accession",
+        "cooldown": 2.5,
+        "duration": 30,
+        "reduction": 0,
+        "shieldBaseActionKey": "adloquium",
+        "shieldPotency": 432,
+        "damageType": "all",
+        "targetGroup": "all",
+        "jobs": [
+          "sch"
+        ],
+        "aliases": [
+          "강림"
+        ]
+      },
+      {
         "id": "sacred-soil",
         "name": "Sacred Soil",
         "cooldown": 30,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -468,6 +630,8 @@
         "cooldown": 120,
         "duration": 20,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -483,6 +647,8 @@
         "cooldown": 60,
         "duration": 18,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -498,6 +664,8 @@
         "cooldown": 60,
         "duration": 8,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -513,6 +681,8 @@
         "cooldown": 120,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -528,6 +698,8 @@
         "cooldown": 30,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -543,6 +715,8 @@
         "cooldown": 45,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -558,6 +732,8 @@
         "cooldown": 120,
         "duration": 20,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -573,6 +749,8 @@
         "cooldown": 120,
         "duration": 15,
         "reduction": 15,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "owner",
         "jobs": [
@@ -588,6 +766,8 @@
         "cooldown": 120,
         "duration": 15,
         "reduction": 15,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -603,6 +783,8 @@
         "cooldown": 90,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "magical",
         "targetGroup": "all",
         "jobs": [
@@ -622,6 +804,8 @@
         "cooldown": 90,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "physical",
         "targetGroup": "all",
         "jobs": [
@@ -642,6 +826,8 @@
         "cooldown": 90,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -657,6 +843,8 @@
         "cooldown": 90,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -672,6 +860,8 @@
         "cooldown": 90,
         "duration": 15,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -688,6 +878,8 @@
         "cooldown": 120,
         "duration": 10,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "magical",
         "targetGroup": "all",
         "jobs": [
@@ -704,6 +896,8 @@
         "cooldown": 120,
         "duration": 10,
         "reduction": 10,
+        "shieldBaseActionKey": "",
+        "shieldPotency": 0,
         "damageType": "all",
         "targetGroup": "all",
         "jobs": [
@@ -720,56 +914,80 @@
         "name": "MT",
         "role": "tank",
         "job": "gnb",
-        "maxHp": 156000
+        "maxHp": 156000,
+        "shieldBaseActionKey": "",
+        "shieldBaseAmount": 0,
+        "shieldBaseCritAmount": 0
       },
       {
         "id": "st",
         "name": "ST",
         "role": "tank",
         "job": "drk",
-        "maxHp": 154000
+        "maxHp": 154000,
+        "shieldBaseActionKey": "",
+        "shieldBaseAmount": 0,
+        "shieldBaseCritAmount": 0
       },
       {
         "id": "h1",
         "name": "H1",
         "role": "healer",
         "job": "whm",
-        "maxHp": 102000
+        "maxHp": 102000,
+        "shieldBaseActionKey": "divine-benison",
+        "shieldBaseAmount": 0,
+        "shieldBaseCritAmount": 0
       },
       {
         "id": "h2",
         "name": "H2",
         "role": "healer",
         "job": "sge",
-        "maxHp": 101000
+        "maxHp": 101000,
+        "shieldBaseActionKey": "",
+        "shieldBaseAmount": 0,
+        "shieldBaseCritAmount": 0
       },
       {
         "id": "d1",
         "name": "D1",
         "role": "dps",
         "job": "vpr",
-        "maxHp": 98000
+        "maxHp": 98000,
+        "shieldBaseActionKey": "",
+        "shieldBaseAmount": 0,
+        "shieldBaseCritAmount": 0
       },
       {
         "id": "d2",
         "name": "D2",
         "role": "dps",
         "job": "drg",
-        "maxHp": 97000
+        "maxHp": 97000,
+        "shieldBaseActionKey": "",
+        "shieldBaseAmount": 0,
+        "shieldBaseCritAmount": 0
       },
       {
         "id": "d3",
         "name": "D3",
         "role": "dps",
         "job": "brd",
-        "maxHp": 96000
+        "maxHp": 96000,
+        "shieldBaseActionKey": "",
+        "shieldBaseAmount": 0,
+        "shieldBaseCritAmount": 0
       },
       {
         "id": "d4",
         "name": "D4",
         "role": "dps",
         "job": "pct",
-        "maxHp": 95000
+        "maxHp": 95000,
+        "shieldBaseActionKey": "",
+        "shieldBaseAmount": 0,
+        "shieldBaseCritAmount": 0
       }
     ],
     "mechanics": [
@@ -810,6 +1028,10 @@
         "cooldown": 60,
         "reduction": 10,
         "damageType": "all",
+        "shieldBaseActionKey": "",
+        "shieldBasePotency": 0,
+        "shieldCrit": false,
+        "shieldPotency": 0,
         "targetGroup": "all"
       },
       {
@@ -819,10 +1041,14 @@
         "actionName": "Addle",
         "actionKey": "addle",
         "start": 62,
-        "duration": 10,
+        "duration": 15,
         "cooldown": 90,
         "reduction": 10,
         "damageType": "magical",
+        "shieldBaseActionKey": "",
+        "shieldBasePotency": 0,
+        "shieldCrit": false,
+        "shieldPotency": 0,
         "targetGroup": "all"
       },
       {
@@ -836,6 +1062,10 @@
         "cooldown": 90,
         "reduction": 20,
         "damageType": "all",
+        "shieldBaseActionKey": "",
+        "shieldBasePotency": 0,
+        "shieldCrit": false,
+        "shieldPotency": 0,
         "targetGroup": "owner"
       }
     ]

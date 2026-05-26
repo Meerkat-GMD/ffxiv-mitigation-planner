@@ -45,6 +45,10 @@ const JOB_GROUPS = [
     },
 ];
 const JOB_ROLES = Object.fromEntries(JOB_GROUPS.flatMap((group) => group.jobs.map(([job]) => [job, group.label.toLowerCase()])));
+const DEFAULT_SHIELD_BASE_ACTION_BY_JOB = {
+    sch: 'adloquium',
+    whm: 'divine-benison',
+};
 
 const state = {
     actionCatalog: [],
@@ -185,7 +189,10 @@ async function connectFirebase() {
                 return;
             }
 
-            applyActionCatalog(payload.catalog || payload);
+            const addedDefaultActions = applyActionCatalog(payload.catalog || payload);
+            if (addedDefaultActions) {
+                firebaseActionCatalogRef.set(buildActionCatalogPayload(state.actionCatalog));
+            }
             setConnection(true, `Firebase: ${planId}`);
             elements.onlineCount.textContent = '공유 plan';
             render();
@@ -299,9 +306,26 @@ function applyRemoteState(nextState) {
 
 function applyActionCatalog(actionCatalog) {
     if (Array.isArray(actionCatalog) && actionCatalog.length) {
-        state.actionCatalog = actionCatalog;
+        const merged = mergeActionCatalogWithDefaults(actionCatalog);
+        state.actionCatalog = merged;
+        refreshClientResults();
+        return merged.length !== actionCatalog.length;
     }
     refreshClientResults();
+    return false;
+}
+
+function mergeActionCatalogWithDefaults(actionCatalog) {
+    const merged = [...actionCatalog];
+    const ids = new Set(merged.map((action) => normalizeActionName(action.id).toLowerCase()));
+    for (const action of defaultPlannerState?.actionCatalog || []) {
+        const id = normalizeActionName(action.id).toLowerCase();
+        if (id && !ids.has(id)) {
+            merged.push(structuredClone(action));
+            ids.add(id);
+        }
+    }
+    return merged;
 }
 
 function connect() {
@@ -568,7 +592,7 @@ function commitFieldChange(target, immediate) {
         }
 
         const previousName = item.name;
-        item[field] = target.type === 'number' ? Number(target.value) : target.value;
+        item[field] = target.type === 'checkbox' ? target.checked : target.type === 'number' ? Number(target.value) : target.value;
         if (collection === 'actionCatalog' && field === 'name' && previousName && previousName !== item.name) {
             item.aliases = [...new Set([...(item.aliases || []), previousName])];
         }
@@ -580,6 +604,7 @@ function commitFieldChange(target, immediate) {
         }
         if (collection === 'party' && field === 'job') {
             item.role = JOB_ROLES[item.job] || item.role;
+            item.shieldBaseActionKey = item.shieldBaseActionKey || DEFAULT_SHIELD_BASE_ACTION_BY_JOB[item.job] || '';
         }
         if (collection === 'actionCatalog') {
             requestActionIcon(item.name);
@@ -597,6 +622,7 @@ function isTextEditingElement(element) {
     return (
         element instanceof HTMLInputElement &&
         element.type !== 'number' &&
+        element.type !== 'checkbox' &&
         Boolean(element.dataset.collection && element.dataset.id && element.dataset.field)
     );
 }
@@ -671,6 +697,9 @@ function addMitigation() {
         duration: 15,
         cooldown: 0,
         reduction: 10,
+        shieldBaseActionKey: '',
+        shieldCrit: false,
+        shieldPotency: 0,
         damageType: 'all',
         targetGroup: 'all',
     });
@@ -685,6 +714,8 @@ function addAction() {
         cooldown: 90,
         duration: 15,
         reduction: 10,
+        shieldBaseActionKey: '',
+        shieldPotency: 0,
         damageType: 'all',
         targetGroup: 'all',
         aliases: [],
@@ -809,6 +840,8 @@ function getMemberPresets(member) {
             duration: Number(action.duration) || 0,
             name: action.name,
             reduction: Number(action.reduction) || 0,
+            shieldBaseActionKey: action.shieldBaseActionKey || '',
+            shieldPotency: Number(action.shieldPotency) || 0,
             targetGroup: action.targetGroup || 'all',
         }));
 }
@@ -824,6 +857,9 @@ function addMitigationFromPreset(ownerId, start, preset) {
         duration: preset.duration,
         cooldown: preset.cooldown,
         reduction: preset.reduction,
+        shieldBaseActionKey: preset.shieldBaseActionKey || '',
+        shieldCrit: false,
+        shieldPotency: preset.shieldPotency || 0,
         damageType: preset.damageType,
         targetGroup: preset.targetGroup,
     });
@@ -964,7 +1000,12 @@ function getEffectiveMitigations() {
     return state.mitigations.map((mitigation) => {
         const action = findActionForMitigationClient(mitigation);
         if (!action) {
-            return mitigation;
+            return {
+                ...mitigation,
+                shieldBasePotency: findShieldBasePotencyClient(mitigation.shieldBaseActionKey, Number(mitigation.shieldPotency) || 0),
+                shieldCrit: Boolean(mitigation.shieldCrit),
+                shieldPotency: Number(mitigation.shieldPotency) || 0,
+            };
         }
 
         return {
@@ -976,9 +1017,23 @@ function getEffectiveMitigations() {
             duration: Number(action.duration) || 0,
             name: action.name,
             reduction: Number(action.reduction) || 0,
+            shieldBaseActionKey: action.shieldBaseActionKey || mitigation.shieldBaseActionKey || '',
+            shieldBasePotency: findShieldBasePotencyClient(action.shieldBaseActionKey, Number(action.shieldPotency) || 0),
+            shieldCrit: Boolean(mitigation.shieldCrit),
+            shieldPotency: Number(action.shieldPotency) || 0,
             targetGroup: action.targetGroup || mitigation.targetGroup || 'all',
         };
     });
+}
+
+function findShieldBasePotencyClient(shieldBaseActionKey, fallbackPotency) {
+    const key = normalizeActionName(shieldBaseActionKey || '').toLowerCase();
+    if (!key) {
+        return fallbackPotency;
+    }
+
+    const action = state.actionCatalog.find((candidate) => normalizeActionName(candidate.id).toLowerCase() === key);
+    return Number(action?.shieldPotency) || fallbackPotency;
 }
 
 function getEffectiveMitigation(mitigationId) {
@@ -1045,7 +1100,10 @@ function calculateMechanicResultClient(mechanic, party, mitigations) {
             }),
         );
         const multiplier = activeMitigations.reduce((value, mitigation) => value * (1 - Number(mitigation.reduction || 0) / 100), 1);
-        const effectiveDamage = Math.round((Number(mechanic.damage) || 0) * multiplier);
+        const mitigatedDamage = Math.round((Number(mechanic.damage) || 0) * multiplier);
+        const totalShield = activeMitigations.reduce((value, mitigation) => value + estimateShieldAmountClient(mitigation, party), 0);
+        const absorbedShield = Math.min(mitigatedDamage, totalShield);
+        const effectiveDamage = Math.max(0, mitigatedDamage - absorbedShield);
         const remainingHp = (Number(member.maxHp) || 0) - effectiveDamage;
 
         effectiveDamageByMember[member.id] = effectiveDamage;
@@ -1060,7 +1118,9 @@ function calculateMechanicResultClient(mechanic, party, mitigations) {
 
         members[member.id] = {
             activeMitigationNames: activeMitigations.map((mitigation) => mitigation.name),
+            absorbedShield,
             effectiveDamage,
+            mitigatedDamage,
             remainingHp,
             targeted: true,
         };
@@ -1074,6 +1134,39 @@ function calculateMechanicResultClient(mechanic, party, mitigations) {
         members,
         survives,
     };
+}
+
+function estimateShieldAmountClient(mitigation, party) {
+    const shieldPotency = Number(mitigation.shieldPotency) || 0;
+    if (shieldPotency <= 0) {
+        return 0;
+    }
+
+    const caster = (party || []).find((member) => member.id === mitigation.ownerId) || party?.[0];
+    if (!caster) {
+        return 0;
+    }
+
+    const baseAmount = Number(mitigation.shieldCrit ? caster.shieldBaseCritAmount : caster.shieldBaseAmount) || 0;
+    const basePotency = Number(mitigation.shieldBasePotency) || shieldPotency;
+    if (baseAmount <= 0 || basePotency <= 0) {
+        return 0;
+    }
+
+    return Math.round(baseAmount * (shieldPotency / basePotency));
+}
+
+function mitigationSummaryClient(mitigation) {
+    const parts = [];
+    const reduction = Number(mitigation.reduction) || 0;
+    const shield = estimateShieldAmountClient(mitigation, state.party);
+    if (reduction > 0) {
+        parts.push(`${reduction}%`);
+    }
+    if (shield > 0) {
+        parts.push(`+${formatNumber(shield)}`);
+    }
+    return parts.join(' ') || '0%';
 }
 
 function selectNonStackingMitigationsClient(mitigations) {
@@ -1296,7 +1389,9 @@ function renderParty() {
                 <div class="party-row">
                     <span class="slot-name">${escapeHtml(member.name)}</span>
                     ${jobSelect(member)}
-                    <input type="number" min="1" value="${member.maxHp}" data-collection="party" data-id="${member.id}" data-field="maxHp" />
+                    <input type="number" min="1" value="${member.maxHp}" data-collection="party" data-id="${member.id}" data-field="maxHp" title="HP" aria-label="${escapeHtml(member.name)} HP" />
+                    <input type="number" min="0" value="${Number(member.shieldBaseAmount) || 0}" data-collection="party" data-id="${member.id}" data-field="shieldBaseAmount" title="기준 실드" aria-label="${escapeHtml(member.name)} 기준 실드" />
+                    <input type="number" min="0" value="${Number(member.shieldBaseCritAmount) || 0}" data-collection="party" data-id="${member.id}" data-field="shieldBaseCritAmount" title="기준 극대 실드" aria-label="${escapeHtml(member.name)} 기준 극대 실드" />
                 </div>
             `,
         )
@@ -1345,6 +1440,7 @@ function renderMitigations() {
                     </td>
                     <td><input class="small-input" type="number" min="0" step="0.1" value="${formatSeconds(mitigation.cooldown || 0)}" data-collection="mitigations" data-id="${mitigation.id}" data-field="cooldown" /></td>
                     <td><input class="small-input" type="number" min="0" max="100" value="${mitigation.reduction}" data-collection="mitigations" data-id="${mitigation.id}" data-field="reduction" /></td>
+                    <td><label class="check-cell"><input type="checkbox" ${mitigation.shieldCrit ? 'checked' : ''} data-collection="mitigations" data-id="${mitigation.id}" data-field="shieldCrit" /><span>${formatNumber(estimateShieldAmountClient(mitigation, state.party))}</span></label></td>
                     <td>${select('mitigations', mitigation.id, 'damageType', MITIGATION_TYPES, mitigation.damageType)}</td>
                     <td>${select('mitigations', mitigation.id, 'targetGroup', MITIGATION_TARGET_GROUPS, mitigation.targetGroup)}</td>
                     <td><button class="delete-button" type="button" data-delete="true" data-collection="mitigations" data-id="${mitigation.id}">×</button></td>
@@ -1411,7 +1507,7 @@ function renderTimeline() {
             const top = rowTop + ownerIndex * rowHeight + 8;
             return `
                 <div class="bar" draggable="true" data-drag-mitigation="true" data-id="${mitigation.id}" style="left:${left}px;top:${top}px;width:${barWidth}px" title="${escapeHtml(mitigation.name)} ${formatSeconds(mitigation.start)}s-${formatSeconds(mitigation.start + mitigation.duration)}s">
-                    ${iconMarkup(mitigation.name)}<span>${escapeHtml(mitigation.name)} ${mitigation.reduction}%</span>
+                    ${iconMarkup(mitigation.name)}<span>${escapeHtml(mitigation.name)} ${escapeHtml(mitigationSummaryClient(mitigation))}</span>
                 </div>
             `;
         })
@@ -1451,6 +1547,7 @@ function renderMitigations() {
                     </td>
                     <td><input class="small-input" type="number" min="0" step="0.1" value="${formatSeconds(mitigation.cooldown || 0)}" data-collection="mitigations" data-id="${mitigation.id}" data-field="cooldown" /></td>
                     <td><input class="small-input" type="number" min="0" max="100" value="${mitigation.reduction}" data-collection="mitigations" data-id="${mitigation.id}" data-field="reduction" /></td>
+                    <td><label class="check-cell"><input type="checkbox" ${mitigation.shieldCrit ? 'checked' : ''} data-collection="mitigations" data-id="${mitigation.id}" data-field="shieldCrit" /><span>${formatNumber(estimateShieldAmountClient(mitigation, state.party))}</span></label></td>
                     <td>${select('mitigations', mitigation.id, 'damageType', MITIGATION_TYPES, mitigation.damageType)}</td>
                     <td>${select('mitigations', mitigation.id, 'targetGroup', MITIGATION_TARGET_GROUPS, mitigation.targetGroup)}</td>
                     <td><button class="delete-button" type="button" data-delete="true" data-collection="mitigations" data-id="${mitigation.id}">x</button></td>
@@ -1519,7 +1616,7 @@ function renderTimeline() {
             const locked = cooldownStatus?.available === false;
             return `
                 <div class="bar ${locked ? 'cooldown-locked' : ''}" draggable="true" data-drag-mitigation="true" data-id="${mitigation.id}" style="left:${left}px;top:${top}px;width:${barWidth}px" title="${escapeHtml(mitigation.name)} ${formatSeconds(mitigation.start)}s-${formatSeconds(mitigation.start + mitigation.duration)}s">
-                    ${iconMarkup(mitigation.name)}<span>${escapeHtml(mitigation.name)} ${locked ? 'CD' : `${mitigation.reduction}%`}</span>
+                    ${iconMarkup(mitigation.name)}<span>${escapeHtml(mitigation.name)} ${locked ? 'CD' : escapeHtml(mitigationSummaryClient(mitigation))}</span>
                 </div>
             `;
         })
@@ -1558,6 +1655,8 @@ function renderActions() {
                     <td><input class="small-input" type="number" min="0" step="0.1" value="${formatSeconds(action.cooldown || 0)}" data-collection="actionCatalog" data-id="${action.id}" data-field="cooldown" /></td>
                     <td><input class="small-input" type="number" min="0" step="0.1" value="${formatSeconds(action.duration || 0)}" data-collection="actionCatalog" data-id="${action.id}" data-field="duration" /></td>
                     <td><input class="small-input" type="number" min="0" max="100" value="${action.reduction}" data-collection="actionCatalog" data-id="${action.id}" data-field="reduction" /></td>
+                    <td><input class="small-input" type="number" min="0" value="${Number(action.shieldPotency) || 0}" data-collection="actionCatalog" data-id="${action.id}" data-field="shieldPotency" /></td>
+                    <td><input class="small-input" value="${escapeHtml(action.shieldBaseActionKey || '')}" data-collection="actionCatalog" data-id="${action.id}" data-field="shieldBaseActionKey" /></td>
                     <td>${select('actionCatalog', action.id, 'damageType', MITIGATION_TYPES, action.damageType)}</td>
                     <td>${select('actionCatalog', action.id, 'targetGroup', MITIGATION_TARGET_GROUPS, action.targetGroup)}</td>
                     <td><button class="delete-button" type="button" data-delete="true" data-collection="actionCatalog" data-id="${action.id}">x</button></td>
