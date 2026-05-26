@@ -1026,7 +1026,8 @@ function calculateMechanicResultClient(mechanic, party, mitigations) {
             continue;
         }
 
-        const activeMitigations = mitigations.filter((mitigation) => {
+        const activeMitigations = selectNonStackingMitigationsClient(
+            mitigations.filter((mitigation) => {
             const start = Number(mitigation.start) || 0;
             const end = start + (Number(mitigation.duration) || 0);
             const cooldownStatus = cooldownStatuses.get(mitigation.id);
@@ -1037,7 +1038,8 @@ function calculateMechanicResultClient(mechanic, party, mitigations) {
                 mitigationMatchesDamageTypeClient(mitigation, mechanic) &&
                 groupIncludesMemberClient(mitigation.targetGroup, member, mitigation.ownerId)
             );
-        });
+            }),
+        );
         const multiplier = activeMitigations.reduce((value, mitigation) => value * (1 - Number(mitigation.reduction || 0) / 100), 1);
         const effectiveDamage = Math.round((Number(mechanic.damage) || 0) * multiplier);
         const remainingHp = (Number(member.maxHp) || 0) - effectiveDamage;
@@ -1049,7 +1051,7 @@ function calculateMechanicResultClient(mechanic, party, mitigations) {
         lowestRemainingHp = Math.min(lowestRemainingHp, remainingHp);
 
         for (const mitigation of activeMitigations) {
-            activeNames.set(mitigation.id, mitigation.name);
+            activeNames.set(mitigationEffectKeyClient(mitigation), mitigation.name);
         }
 
         members[member.id] = {
@@ -1068,6 +1070,25 @@ function calculateMechanicResultClient(mechanic, party, mitigations) {
         members,
         survives,
     };
+}
+
+function selectNonStackingMitigationsClient(mitigations) {
+    const selectedByEffect = new Map();
+    const sorted = mitigations
+        .slice()
+        .sort((a, b) => Number(a.start) - Number(b.start) || String(a.id).localeCompare(String(b.id)));
+
+    for (const mitigation of sorted) {
+        selectedByEffect.set(mitigationEffectKeyClient(mitigation), mitigation);
+    }
+
+    return [...selectedByEffect.values()].sort(
+        (a, b) => Number(a.start) - Number(b.start) || String(a.id).localeCompare(String(b.id)),
+    );
+}
+
+function mitigationEffectKeyClient(mitigation) {
+    return normalizeActionName(mitigation.actionKey || mitigation.actionName || mitigation.name).toLowerCase();
 }
 
 function calculateCooldownConflictsClient(mitigations) {
