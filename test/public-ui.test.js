@@ -84,6 +84,15 @@ test('client survival calculation collapses duplicate active action effects', ()
     assert.match(appJs, /selectNonStackingMitigationsClient\(\s*mitigations\.filter/);
 });
 
+test('timeline supports prepull negative mitigation placement', () => {
+    assert.match(appJs, /data-range-start/);
+    assert.match(appJs, /data-range-end/);
+    assert.match(appJs, /const rangeStart = Math\.min\(-30/);
+    assert.match(appJs, /rangeStart \+ \(x \/ rect\.width\) \* range/);
+    assert.match(appJs, /value="\$\{formatSeconds\(mitigation\.start\)\}" data-collection="mitigations"/);
+    assert.doesNotMatch(appJs, /min="0" step="0\.1" value="\$\{formatSeconds\(mitigation\.start\)\}"/);
+});
+
 test('default planner state is available as a static asset for GitHub Pages', () => {
     const defaultStatePath = path.join(__dirname, '..', 'public', 'default-state.json');
     const defaultState = JSON.parse(fs.readFileSync(defaultStatePath, 'utf8'));

@@ -851,21 +851,25 @@ function placeMitigationAtClientX(mitigationId, clientX, canvas, clientY) {
 }
 
 function getMitigationStartAtClientX(mitigation, clientX, canvas) {
-    const range = Number(canvas.dataset.range) || 90;
+    const rangeStart = Number(canvas.dataset.rangeStart ?? 0);
+    const rangeEnd = Number(canvas.dataset.rangeEnd ?? canvas.dataset.range ?? 90);
+    const range = Math.max(1, rangeEnd - rangeStart);
     const rect = canvas.getBoundingClientRect();
     const x = Math.min(rect.width, Math.max(0, clientX - rect.left));
-    const rawStart = (x / rect.width) * range;
-    const maxStart = Math.max(0, range - Number(mitigation.duration || 0));
+    const rawStart = rangeStart + (x / rect.width) * range;
+    const maxStart = Math.max(rangeStart, rangeEnd - Number(mitigation.duration || 0));
 
-    return roundToTenth(Math.min(maxStart, Math.max(0, rawStart)));
+    return roundToTenth(Math.min(maxStart, Math.max(rangeStart, rawStart)));
 }
 
 function getTimelineSecondsAtClientX(clientX, canvas) {
-    const range = Number(canvas.dataset.range) || 90;
+    const rangeStart = Number(canvas.dataset.rangeStart ?? 0);
+    const rangeEnd = Number(canvas.dataset.rangeEnd ?? canvas.dataset.range ?? 90);
+    const range = Math.max(1, rangeEnd - rangeStart);
     const rect = canvas.getBoundingClientRect();
     const x = Math.min(rect.width, Math.max(0, clientX - rect.left));
 
-    return roundToTenth((x / rect.width) * range);
+    return roundToTenth(rangeStart + (x / rect.width) * range);
 }
 
 function isTimelineTimeArea(clientY, canvas) {
@@ -1329,7 +1333,7 @@ function renderMitigations() {
             return `
                 <tr class="${locked ? 'cooldown-locked-row' : ''}">
                     <td><button class="drag-handle" type="button" draggable="true" data-drag-mitigation="true" data-id="${mitigation.id}" title="타임라인에 끌어놓기">move</button></td>
-                    <td><input class="small-input" type="number" min="0" step="0.1" value="${formatSeconds(mitigation.start)}" data-collection="mitigations" data-id="${mitigation.id}" data-field="start" /></td>
+                    <td><input class="small-input" type="number" min="-9999" step="0.1" value="${formatSeconds(mitigation.start)}" data-collection="mitigations" data-id="${mitigation.id}" data-field="start" /></td>
                     <td><input class="small-input" type="number" min="0" step="0.1" value="${formatSeconds(mitigation.duration)}" data-collection="mitigations" data-id="${mitigation.id}" data-field="duration" /></td>
                     <td>${partySelect(mitigation.id, mitigation.ownerId)}</td>
                     <td>
@@ -1353,24 +1357,27 @@ function renderMitigations() {
 function renderTimeline() {
     const maxMechanic = Math.max(90, ...state.mechanics.map((mechanic) => mechanic.time));
     const effectiveMitigations = getEffectiveMitigations();
+    const minMitigation = Math.min(0, ...effectiveMitigations.map((mitigation) => Number(mitigation.start) || 0));
+    const rangeStart = Math.min(-30, Math.floor(minMitigation / 30) * 30);
     const maxMitigation = Math.max(90, ...effectiveMitigations.map((mitigation) => mitigation.start + mitigation.duration));
-    const range = Math.ceil(Math.max(maxMechanic, maxMitigation) / 30) * 30;
+    const rangeEnd = Math.ceil(Math.max(maxMechanic, maxMitigation) / 30) * 30;
+    const range = rangeEnd - rangeStart;
     const width = Math.max(1100, range * 8);
     const rowTop = 56;
     const rowHeight = 38;
     const height = rowTop + state.party.length * rowHeight;
 
-    elements.timelineRange.textContent = `0s - ${range}s`;
+    elements.timelineRange.textContent = `${formatSeconds(rangeStart)}s - ${formatSeconds(rangeEnd)}s`;
 
     const scale = [];
-    for (let second = 0; second <= range; second += 30) {
-            scale.push(`<span class="scale-label" style="left:${(second / range) * width}px">${formatSeconds(second)}s</span>`);
+    for (let second = rangeStart; second <= rangeEnd; second += 30) {
+            scale.push(`<span class="scale-label" style="left:${((second - rangeStart) / range) * width}px">${formatSeconds(second)}s</span>`);
     }
 
     const resultById = new Map(results.map((result) => [result.mechanic.id, result]));
     const markers = state.mechanics
         .map((mechanic) => {
-            const left = (mechanic.time / range) * width;
+            const left = ((mechanic.time - rangeStart) / range) * width;
             const result = resultById.get(mechanic.id);
             const status = result?.survives ? 'survives' : 'fails';
             return `
@@ -1395,7 +1402,7 @@ function renderTimeline() {
 
     const bars = effectiveMitigations
         .map((mitigation) => {
-            const left = (mitigation.start / range) * width;
+            const left = ((mitigation.start - rangeStart) / range) * width;
             const barWidth = Math.max(18, (mitigation.duration / range) * width);
             const ownerIndex = Math.max(
                 0,
@@ -1411,7 +1418,7 @@ function renderTimeline() {
         .join('');
 
     elements.timeline.innerHTML = `
-        <div class="timeline-canvas" data-range="${range}" data-row-top="${rowTop}" data-row-height="${rowHeight}" style="width:${width}px;--timeline-height:${height}px">
+        <div class="timeline-canvas" data-range="${range}" data-range-start="${rangeStart}" data-range-end="${rangeEnd}" data-row-top="${rowTop}" data-row-height="${rowHeight}" style="width:${width}px;--timeline-height:${height}px">
             ${scale.join('')}
             ${lanes}
             ${laneDividers}
@@ -1432,7 +1439,7 @@ function renderMitigations() {
             return `
                 <tr class="${locked ? 'cooldown-locked-row' : ''}">
                     <td><button class="drag-handle" type="button" draggable="true" data-drag-mitigation="true" data-id="${mitigation.id}" title="Drag to timeline">move</button></td>
-                    <td><input class="small-input" type="number" min="0" step="0.1" value="${formatSeconds(mitigation.start)}" data-collection="mitigations" data-id="${mitigation.id}" data-field="start" /></td>
+                    <td><input class="small-input" type="number" min="-9999" step="0.1" value="${formatSeconds(mitigation.start)}" data-collection="mitigations" data-id="${mitigation.id}" data-field="start" /></td>
                     <td><input class="small-input" type="number" min="0" step="0.1" value="${formatSeconds(mitigation.duration)}" data-collection="mitigations" data-id="${mitigation.id}" data-field="duration" /></td>
                     <td>${partySelect(mitigation.id, mitigation.ownerId)}</td>
                     <td>
@@ -1456,24 +1463,27 @@ function renderMitigations() {
 function renderTimeline() {
     const maxMechanic = Math.max(90, ...state.mechanics.map((mechanic) => mechanic.time));
     const effectiveMitigations = getEffectiveMitigations();
+    const minMitigation = Math.min(0, ...effectiveMitigations.map((mitigation) => Number(mitigation.start) || 0));
+    const rangeStart = Math.min(-30, Math.floor(minMitigation / 30) * 30);
     const maxMitigation = Math.max(90, ...effectiveMitigations.map((mitigation) => mitigation.start + mitigation.duration));
-    const range = Math.ceil(Math.max(maxMechanic, maxMitigation) / 30) * 30;
+    const rangeEnd = Math.ceil(Math.max(maxMechanic, maxMitigation) / 30) * 30;
+    const range = rangeEnd - rangeStart;
     const width = Math.max(1100, range * 8);
     const rowTop = 56;
     const rowHeight = 38;
     const height = rowTop + state.party.length * rowHeight;
 
-    elements.timelineRange.textContent = `0s - ${range}s`;
+    elements.timelineRange.textContent = `${formatSeconds(rangeStart)}s - ${formatSeconds(rangeEnd)}s`;
 
     const scale = [];
-    for (let second = 0; second <= range; second += 30) {
-        scale.push(`<span class="scale-label" style="left:${(second / range) * width}px">${formatSeconds(second)}s</span>`);
+    for (let second = rangeStart; second <= rangeEnd; second += 30) {
+        scale.push(`<span class="scale-label" style="left:${((second - rangeStart) / range) * width}px">${formatSeconds(second)}s</span>`);
     }
 
     const resultById = new Map(results.map((result) => [result.mechanic.id, result]));
     const markers = state.mechanics
         .map((mechanic) => {
-            const left = (mechanic.time / range) * width;
+            const left = ((mechanic.time - rangeStart) / range) * width;
             const result = resultById.get(mechanic.id);
             const status = result?.survives ? 'survives' : 'fails';
             return `
@@ -1498,7 +1508,7 @@ function renderTimeline() {
 
     const bars = effectiveMitigations
         .map((mitigation) => {
-            const left = (mitigation.start / range) * width;
+            const left = ((mitigation.start - rangeStart) / range) * width;
             const barWidth = Math.max(18, (mitigation.duration / range) * width);
             const ownerIndex = Math.max(
                 0,
@@ -1516,7 +1526,7 @@ function renderTimeline() {
         .join('');
 
     elements.timeline.innerHTML = `
-        <div class="timeline-canvas" data-range="${range}" data-row-top="${rowTop}" data-row-height="${rowHeight}" style="width:${width}px;--timeline-height:${height}px">
+        <div class="timeline-canvas" data-range="${range}" data-range-start="${rangeStart}" data-range-end="${rangeEnd}" data-row-top="${rowTop}" data-row-height="${rowHeight}" style="width:${width}px;--timeline-height:${height}px">
             ${scale.join('')}
             ${lanes}
             ${laneDividers}

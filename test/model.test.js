@@ -365,6 +365,26 @@ test('normalizes timeline seconds to one decimal place', () => {
     assert.equal(normalized.mitigations[0].duration, 14.9);
 });
 
+test('allows mitigation prepull start times before zero', () => {
+    const normalized = normalizePlannerState({
+        party: [{ id: 'mt', name: 'MT', role: 'tank', maxHp: 100000 }],
+        mechanics: [],
+        mitigations: [
+            {
+                id: 'prepull',
+                name: 'Reprisal',
+                start: -7.24,
+                duration: 15,
+                reduction: 10,
+                damageType: 'all',
+                targetGroup: 'all',
+            },
+        ],
+    });
+
+    assert.equal(normalized.mitigations[0].start, -7.2);
+});
+
 test('normalizes known mitigation cooldowns and canonical action keys', () => {
     const normalized = normalizePlannerState({
         party: [{ id: 'p1', name: 'P1', role: 'dps', maxHp: 100000 }],

@@ -140,7 +140,7 @@ function normalizeMitigation(mitigation, index, party = DEFAULT_PARTY, actionCat
         name: action ? action.name : String(mitigation.name || `Mitigation ${index + 1}`),
         actionName: action ? action.name : resolvedAction.name,
         actionKey: action ? action.id : resolvedAction.key,
-        start: quantizeSeconds(clampNumber(mitigation.start, 0, 0, 9999)),
+        start: quantizeSeconds(clampNumber(mitigation.start, 0, -9999, 9999)),
         duration: quantizeSeconds(action ? action.duration : clampNumber(mitigation.duration, 10, 0, 9999)),
         cooldown: quantizeSeconds(cooldown),
         reduction: action ? action.reduction : clampNumber(mitigation.reduction, 0, 0, 100),
