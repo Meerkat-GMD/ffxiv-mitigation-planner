@@ -21,6 +21,7 @@
                 <button id="savePlanButton" type="button">저장</button>
                 <button id="loadPlanButton" type="button">불러오기</button>
                 <input id="loadPlanInput" type="file" accept="application/json,.json" hidden />
+                <button id="openShieldSettingsButton" type="button">실드 설정</button>
                 <button id="openActionEditorButton" type="button">스킬 편집</button>
                 <button id="resetButton" type="button">초기화</button>
             </div>
@@ -142,6 +143,35 @@
                             </tr>
                         </thead>
                         <tbody id="actionsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="shieldSettingsView" class="editor-view" hidden>
+            <div class="editor-shell">
+                <div class="editor-heading">
+                    <div>
+                        <h2>타임라인 실드 설정</h2>
+                        <p>이 plan에서 쓰는 장비 상태 기준 실드량을 입력합니다.</p>
+                    </div>
+                    <div class="editor-actions">
+                        <button id="closeShieldSettingsButton" type="button">닫기</button>
+                    </div>
+                </div>
+                <div class="table-wrap editor-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>포지션</th>
+                                <th>직업</th>
+                                <th>HP</th>
+                                <th>기준 스킬</th>
+                                <th>기준 실드</th>
+                                <th>기준 극대 실드</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shieldSettingsBody"></tbody>
                     </table>
                 </div>
             </div>

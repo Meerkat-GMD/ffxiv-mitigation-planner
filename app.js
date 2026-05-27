@@ -86,6 +86,7 @@ const elements = {
     mechanicsBody: document.querySelector('#mechanicsBody'),
     mitigationsBody: document.querySelector('#mitigationsBody'),
     actionsBody: document.querySelector('#actionsBody'),
+    shieldSettingsBody: document.querySelector('#shieldSettingsBody'),
     resultsBody: document.querySelector('#resultsBody'),
     timeline: document.querySelector('#timeline'),
     timelineRange: document.querySelector('#timelineRange'),
@@ -96,9 +97,12 @@ const elements = {
     loadPlanInput: document.querySelector('#loadPlanInput'),
     addMitigationButton: document.querySelector('#addMitigationButton'),
     openActionEditorButton: document.querySelector('#openActionEditorButton'),
+    openShieldSettingsButton: document.querySelector('#openShieldSettingsButton'),
     addActionButton: document.querySelector('#addActionButton'),
     closeActionEditorButton: document.querySelector('#closeActionEditorButton'),
+    closeShieldSettingsButton: document.querySelector('#closeShieldSettingsButton'),
     actionEditorView: document.querySelector('#actionEditorView'),
+    shieldSettingsView: document.querySelector('#shieldSettingsView'),
     resetButton: document.querySelector('#resetButton'),
 };
 
@@ -375,8 +379,10 @@ function bindEvents() {
     elements.loadPlanInput?.addEventListener('change', importPlanFile);
     elements.addMitigationButton?.addEventListener('click', addMitigation);
     elements.openActionEditorButton?.addEventListener('click', openActionEditor);
+    elements.openShieldSettingsButton?.addEventListener('click', openShieldSettings);
     elements.addActionButton?.addEventListener('click', addAction);
     elements.closeActionEditorButton?.addEventListener('click', closeActionEditor);
+    elements.closeShieldSettingsButton?.addEventListener('click', closeShieldSettings);
     elements.resetButton.addEventListener('click', async () => {
         if (syncMode === 'firebase' && firebasePlanRef) {
             applyRemoteState(await loadDefaultState());
@@ -400,6 +406,7 @@ function bindEvents() {
         if (event.key === 'Escape') {
             hideContextMenu();
             closeActionEditor();
+            closeShieldSettings();
         }
     });
 
@@ -564,6 +571,7 @@ function bindEvents() {
 }
 
 function openActionEditor() {
+    closeShieldSettings();
     elements.actionEditorView.hidden = false;
     document.body.classList.add('editor-open');
 }
@@ -571,6 +579,19 @@ function openActionEditor() {
 function closeActionEditor() {
     if (!elements.actionEditorView?.hidden) {
         elements.actionEditorView.hidden = true;
+        document.body.classList.remove('editor-open');
+    }
+}
+
+function openShieldSettings() {
+    closeActionEditor();
+    elements.shieldSettingsView.hidden = false;
+    document.body.classList.add('editor-open');
+}
+
+function closeShieldSettings() {
+    if (!elements.shieldSettingsView?.hidden) {
+        elements.shieldSettingsView.hidden = true;
         document.body.classList.remove('editor-open');
     }
 }
@@ -1290,6 +1311,7 @@ function render() {
     renderMechanics();
     renderMitigations();
     renderActions();
+    renderShieldSettings();
     renderTimeline();
     renderResults();
     restoreFocusedField(focusedField);
@@ -1390,9 +1412,28 @@ function renderParty() {
                     <span class="slot-name">${escapeHtml(member.name)}</span>
                     ${jobSelect(member)}
                     <input type="number" min="1" value="${member.maxHp}" data-collection="party" data-id="${member.id}" data-field="maxHp" title="HP" aria-label="${escapeHtml(member.name)} HP" />
-                    <input type="number" min="0" value="${Number(member.shieldBaseAmount) || 0}" data-collection="party" data-id="${member.id}" data-field="shieldBaseAmount" title="기준 실드" aria-label="${escapeHtml(member.name)} 기준 실드" />
-                    <input type="number" min="0" value="${Number(member.shieldBaseCritAmount) || 0}" data-collection="party" data-id="${member.id}" data-field="shieldBaseCritAmount" title="기준 극대 실드" aria-label="${escapeHtml(member.name)} 기준 극대 실드" />
                 </div>
+            `,
+        )
+        .join('');
+}
+
+function renderShieldSettings() {
+    if (!elements.shieldSettingsBody) {
+        return;
+    }
+
+    elements.shieldSettingsBody.innerHTML = state.party
+        .map(
+            (member) => `
+                <tr>
+                    <td><strong>${escapeHtml(member.name)}</strong></td>
+                    <td>${escapeHtml(jobLabel(member.job))}</td>
+                    <td><input class="damage-input" type="number" min="1" value="${member.maxHp}" data-collection="party" data-id="${member.id}" data-field="maxHp" /></td>
+                    <td><input value="${escapeHtml(member.shieldBaseActionKey || DEFAULT_SHIELD_BASE_ACTION_BY_JOB[member.job] || '')}" data-collection="party" data-id="${member.id}" data-field="shieldBaseActionKey" /></td>
+                    <td><input class="damage-input" type="number" min="0" value="${Number(member.shieldBaseAmount) || 0}" data-collection="party" data-id="${member.id}" data-field="shieldBaseAmount" /></td>
+                    <td><input class="damage-input" type="number" min="0" value="${Number(member.shieldBaseCritAmount) || 0}" data-collection="party" data-id="${member.id}" data-field="shieldBaseCritAmount" /></td>
+                </tr>
             `,
         )
         .join('');
