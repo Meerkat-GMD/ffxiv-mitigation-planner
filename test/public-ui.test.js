@@ -85,6 +85,10 @@ test('client survival calculation collapses duplicate active action effects', ()
 });
 
 test('planner exposes shield baseline and critical shield controls', () => {
+    assert.match(html, /id="openShieldSettingsButton"/);
+    assert.match(html, /id="shieldSettingsView"/);
+    assert.match(appJs, /function openShieldSettings/);
+    assert.match(appJs, /function renderShieldSettings/);
     assert.match(appJs, /shieldBaseAmount/);
     assert.match(appJs, /shieldBaseCritAmount/);
     assert.match(appJs, /shieldPotency/);
@@ -93,6 +97,10 @@ test('planner exposes shield baseline and critical shield controls', () => {
     assert.match(appJs, /function estimateShieldAmountClient/);
     assert.match(appJs, /function mergeActionCatalogWithDefaults/);
     assert.match(appJs, /absorbedShield/);
+
+    const partyRenderer = appJs.match(/function renderParty\(\) \{[\s\S]*?function renderShieldSettings/)[0];
+    assert.doesNotMatch(partyRenderer, /shieldBaseAmount/);
+    assert.doesNotMatch(partyRenderer, /shieldBaseCritAmount/);
 });
 
 test('timeline supports prepull negative mitigation placement', () => {
