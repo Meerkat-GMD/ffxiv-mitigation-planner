@@ -613,7 +613,15 @@ function commitFieldChange(target, immediate) {
         }
 
         const previousName = item.name;
-        item[field] = target.type === 'checkbox' ? target.checked : target.type === 'number' ? Number(target.value) : target.value;
+        if (collection === 'party' && target.dataset.shieldAction) {
+            item.shieldOverrides = item.shieldOverrides || {};
+            const actionKey = normalizeActionName(target.dataset.shieldAction).toLowerCase();
+            item.shieldOverrides[actionKey] = item.shieldOverrides[actionKey] || {};
+            const overrideField = field === 'shieldOverrideCritAmount' ? 'critAmount' : 'amount';
+            item.shieldOverrides[actionKey][overrideField] = target.type === 'number' ? Number(target.value) : target.value;
+        } else {
+            item[field] = target.type === 'checkbox' ? target.checked : target.type === 'number' ? Number(target.value) : target.value;
+        }
         if (collection === 'actionCatalog' && field === 'name' && previousName && previousName !== item.name) {
             item.aliases = [...new Set([...(item.aliases || []), previousName])];
         }
@@ -1168,6 +1176,11 @@ function estimateShieldAmountClient(mitigation, party) {
         return 0;
     }
 
+    const override = getShieldOverrideAmountClient(mitigation, caster);
+    if (override > 0) {
+        return override;
+    }
+
     const baseAmount = Number(mitigation.shieldCrit ? caster.shieldBaseCritAmount : caster.shieldBaseAmount) || 0;
     const basePotency = Number(mitigation.shieldBasePotency) || shieldPotency;
     if (baseAmount <= 0 || basePotency <= 0) {
@@ -1175,6 +1188,12 @@ function estimateShieldAmountClient(mitigation, party) {
     }
 
     return Math.round(baseAmount * (shieldPotency / basePotency));
+}
+
+function getShieldOverrideAmountClient(mitigation, caster) {
+    const key = normalizeActionName(mitigation.actionKey || mitigation.actionName || mitigation.name).toLowerCase();
+    const override = key ? caster.shieldOverrides?.[key] : null;
+    return Number(mitigation.shieldCrit ? override?.critAmount : override?.amount) || 0;
 }
 
 function mitigationSummaryClient(mitigation) {
@@ -1423,20 +1442,48 @@ function renderShieldSettings() {
         return;
     }
 
-    elements.shieldSettingsBody.innerHTML = state.party
-        .map(
-            (member) => `
+    elements.shieldSettingsBody.innerHTML = getShieldSettingRows()
+        .map((row) => {
+            if (!row.action) {
+                return `
                 <tr>
-                    <td><strong>${escapeHtml(member.name)}</strong></td>
-                    <td>${escapeHtml(jobLabel(member.job))}</td>
-                    <td><input class="damage-input" type="number" min="1" value="${member.maxHp}" data-collection="party" data-id="${member.id}" data-field="maxHp" /></td>
-                    <td><input value="${escapeHtml(member.shieldBaseActionKey || DEFAULT_SHIELD_BASE_ACTION_BY_JOB[member.job] || '')}" data-collection="party" data-id="${member.id}" data-field="shieldBaseActionKey" /></td>
-                    <td><input class="damage-input" type="number" min="0" value="${Number(member.shieldBaseAmount) || 0}" data-collection="party" data-id="${member.id}" data-field="shieldBaseAmount" /></td>
-                    <td><input class="damage-input" type="number" min="0" value="${Number(member.shieldBaseCritAmount) || 0}" data-collection="party" data-id="${member.id}" data-field="shieldBaseCritAmount" /></td>
+                    <td><strong>${escapeHtml(row.member.name)}</strong></td>
+                    <td>${escapeHtml(jobLabel(row.member.job))}</td>
+                    <td colspan="4"><span class="empty">등록된 실드 스킬 없음</span></td>
                 </tr>
-            `,
-        )
+                `;
+            }
+
+            const override = row.member.shieldOverrides?.[row.action.id] || {};
+            return `
+                <tr>
+                    <td><strong>${escapeHtml(row.member.name)}</strong></td>
+                    <td>${escapeHtml(jobLabel(row.member.job))}</td>
+                    <td>
+                        <div class="skill-cell">
+                            ${iconMarkup(row.action.name)}
+                            <span>${escapeHtml(row.action.name)} <span class="empty">${formatNumber(row.action.shieldPotency || 0)}</span></span>
+                        </div>
+                    </td>
+                    <td><input class="damage-input" type="number" min="1" value="${row.member.maxHp}" data-collection="party" data-id="${row.member.id}" data-field="maxHp" /></td>
+                    <td><input class="damage-input" type="number" min="0" value="${Number(override.amount) || ''}" data-collection="party" data-id="${row.member.id}" data-field="shieldOverrideAmount" data-shield-action="${escapeHtml(row.action.id)}" /></td>
+                    <td><input class="damage-input" type="number" min="0" value="${Number(override.critAmount) || ''}" data-collection="party" data-id="${row.member.id}" data-field="shieldOverrideCritAmount" data-shield-action="${escapeHtml(row.action.id)}" /></td>
+                </tr>
+            `;
+        })
         .join('');
+}
+
+function getShieldSettingRows() {
+    return state.party.flatMap((member) => {
+        const actions = state.actionCatalog.filter(
+            (action) => Number(action.shieldPotency) > 0 && (action.jobs || []).includes(member.job),
+        );
+        if (!actions.length) {
+            return [{ member, action: null }];
+        }
+        return actions.map((action) => ({ member, action }));
+    });
 }
 
 function renderMechanics() {

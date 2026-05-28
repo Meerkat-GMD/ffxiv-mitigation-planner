@@ -251,6 +251,92 @@ test('uses the critical personal shield baseline when a shield placement is mark
     assert.equal(result.members.mt.remainingHp, 24000);
 });
 
+test('uses plan-specific per-skill shield amounts before potency estimates', () => {
+    const normalized = normalizePlannerState({
+        actionCatalog: [
+            {
+                id: 'adloquium',
+                name: 'Adloquium',
+                cooldown: 2.5,
+                duration: 30,
+                reduction: 0,
+                shieldPotency: 540,
+                shieldBaseActionKey: 'adloquium',
+                damageType: 'all',
+                targetGroup: 'owner',
+                jobs: ['sch'],
+            },
+            {
+                id: 'concitation',
+                name: 'Concitation',
+                cooldown: 2.5,
+                duration: 30,
+                reduction: 0,
+                shieldPotency: 360,
+                shieldBaseActionKey: 'adloquium',
+                damageType: 'all',
+                targetGroup: 'all',
+                jobs: ['sch'],
+            },
+        ],
+        party: [
+            {
+                id: 'h1',
+                name: 'H1',
+                role: 'healer',
+                job: 'sch',
+                maxHp: 90000,
+                shieldBaseActionKey: 'adloquium',
+                shieldBaseAmount: 30000,
+                shieldBaseCritAmount: 51000,
+                shieldOverrides: {
+                    concitation: {
+                        amount: 25000,
+                        critAmount: 42000,
+                    },
+                },
+            },
+        ],
+        mechanics: [
+            {
+                id: 'm-shield-override',
+                time: 10,
+                name: 'Shielded raidwide',
+                damage: 100000,
+                damageType: 'magical',
+                targetGroup: 'all',
+            },
+        ],
+        mitigations: [
+            {
+                id: 'concitation-use',
+                ownerId: 'mt',
+                actionKey: 'concitation',
+                name: 'Concitation',
+                start: 0,
+            },
+            {
+                id: 'concitation-crit',
+                ownerId: 'mt',
+                actionKey: 'concitation',
+                name: 'Concitation',
+                start: 40,
+                shieldCrit: true,
+            },
+        ],
+    });
+
+    const normalResult = calculateMechanicResult(normalized.mechanics[0], normalized.party, normalized.mitigations);
+    const critResult = calculateMechanicResult(
+        { ...normalized.mechanics[0], time: 45 },
+        normalized.party,
+        normalized.mitigations,
+    );
+
+    assert.equal(normalResult.members.mt.absorbedShield, 25000);
+    assert.equal(critResult.members.mt.absorbedShield, 42000);
+});
+
 test('does not stack duplicate action effects and keeps the latest active use', () => {
     const result = calculateMechanicResult(
         {

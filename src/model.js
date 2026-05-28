@@ -133,7 +133,26 @@ function normalizeMember(member, index) {
         shieldBaseActionKey: String(member.shieldBaseActionKey || DEFAULT_SHIELD_BASE_ACTION_BY_JOB[job] || ''),
         shieldBaseAmount: clampNumber(member.shieldBaseAmount, 0, 0, 999999),
         shieldBaseCritAmount: clampNumber(member.shieldBaseCritAmount, member.shieldBaseAmount || 0, 0, 999999),
+        shieldOverrides: normalizeShieldOverrides(member.shieldOverrides),
     };
+}
+
+function normalizeShieldOverrides(overrides) {
+    if (!overrides || typeof overrides !== 'object' || Array.isArray(overrides)) {
+        return {};
+    }
+
+    return Object.fromEntries(
+        Object.entries(overrides)
+            .map(([key, value]) => [
+                String(key).trim().toLowerCase(),
+                {
+                    amount: clampNumber(value?.amount, 0, 0, 999999),
+                    critAmount: clampNumber(value?.critAmount, value?.amount || 0, 0, 999999),
+                },
+            ])
+            .filter(([key]) => key),
+    );
 }
 
 function normalizeMechanic(mechanic, index) {
@@ -282,6 +301,11 @@ function estimateShieldAmount(mitigation, party) {
         return 0;
     }
 
+    const override = getShieldOverride(mitigation, caster);
+    if (override > 0) {
+        return override;
+    }
+
     const baseAmount = Number(mitigation.shieldCrit ? caster.shieldBaseCritAmount : caster.shieldBaseAmount) || 0;
     const basePotency = Number(mitigation.shieldBasePotency) || shieldPotency;
     if (baseAmount <= 0 || basePotency <= 0) {
@@ -289,6 +313,12 @@ function estimateShieldAmount(mitigation, party) {
     }
 
     return Math.round(baseAmount * (shieldPotency / basePotency));
+}
+
+function getShieldOverride(mitigation, caster) {
+    const key = String(mitigation.actionKey || mitigation.actionName || mitigation.name || '').trim().toLowerCase();
+    const override = key ? caster.shieldOverrides?.[key] : null;
+    return Number(mitigation.shieldCrit ? override?.critAmount : override?.amount) || 0;
 }
 
 function calculateCooldownConflicts(mitigations) {

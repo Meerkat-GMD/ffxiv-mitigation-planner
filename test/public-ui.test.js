@@ -89,6 +89,9 @@ test('planner exposes shield baseline and critical shield controls', () => {
     assert.match(html, /id="shieldSettingsView"/);
     assert.match(appJs, /function openShieldSettings/);
     assert.match(appJs, /function renderShieldSettings/);
+    assert.match(appJs, /function getShieldSettingRows/);
+    assert.match(appJs, /shieldOverrides/);
+    assert.match(appJs, /data-shield-action/);
     assert.match(appJs, /shieldBaseAmount/);
     assert.match(appJs, /shieldBaseCritAmount/);
     assert.match(appJs, /shieldPotency/);
