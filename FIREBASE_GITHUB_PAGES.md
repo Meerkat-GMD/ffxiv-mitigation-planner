@@ -37,6 +37,12 @@ Use a private/test Firebase project for this prototype. This open rule lets anyo
         ".read": true,
         ".write": true
       }
+    },
+    "settings": {
+      "actionCatalog": {
+        ".read": true,
+        ".write": true
+      }
     }
   }
 }

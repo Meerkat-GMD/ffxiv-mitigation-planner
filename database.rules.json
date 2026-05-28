@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "plans": {
+      "$planId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "settings": {
+      "actionCatalog": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}
