@@ -100,10 +100,14 @@ test('planner exposes shield baseline and critical shield controls', () => {
     assert.match(appJs, /function estimateShieldAmountClient/);
     assert.match(appJs, /function mergeActionCatalogWithDefaults/);
     assert.match(appJs, /absorbedShield/);
+    assert.doesNotMatch(html, /<th>HP<\/th>[\s\S]*<tbody id="shieldSettingsBody"/);
 
     const partyRenderer = appJs.match(/function renderParty\(\) \{[\s\S]*?function renderShieldSettings/)[0];
     assert.doesNotMatch(partyRenderer, /shieldBaseAmount/);
     assert.doesNotMatch(partyRenderer, /shieldBaseCritAmount/);
+
+    const shieldSettingsRenderer = appJs.match(/function renderShieldSettings\(\) \{[\s\S]*?function getShieldSettingRows/)[0];
+    assert.doesNotMatch(shieldSettingsRenderer, /data-field="maxHp"/);
 });
 
 test('timeline supports prepull negative mitigation placement', () => {

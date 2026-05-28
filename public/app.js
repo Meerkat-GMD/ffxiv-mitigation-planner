@@ -1449,7 +1449,7 @@ function renderShieldSettings() {
                 <tr>
                     <td><strong>${escapeHtml(row.member.name)}</strong></td>
                     <td>${escapeHtml(jobLabel(row.member.job))}</td>
-                    <td colspan="4"><span class="empty">등록된 실드 스킬 없음</span></td>
+                    <td colspan="3"><span class="empty">등록된 실드 스킬 없음</span></td>
                 </tr>
                 `;
             }
@@ -1465,7 +1465,6 @@ function renderShieldSettings() {
                             <span>${escapeHtml(row.action.name)} <span class="empty">${formatNumber(row.action.shieldPotency || 0)}</span></span>
                         </div>
                     </td>
-                    <td><input class="damage-input" type="number" min="1" value="${row.member.maxHp}" data-collection="party" data-id="${row.member.id}" data-field="maxHp" /></td>
                     <td><input class="damage-input" type="number" min="0" value="${Number(override.amount) || ''}" data-collection="party" data-id="${row.member.id}" data-field="shieldOverrideAmount" data-shield-action="${escapeHtml(row.action.id)}" /></td>
                     <td><input class="damage-input" type="number" min="0" value="${Number(override.critAmount) || ''}" data-collection="party" data-id="${row.member.id}" data-field="shieldOverrideCritAmount" data-shield-action="${escapeHtml(row.action.id)}" /></td>
                 </tr>
