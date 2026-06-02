@@ -1,5 +1,14 @@
 {
   "rules": {
+    "rooms": {
+      "$roomId": {
+        ".read": true,
+        ".write": true,
+        "$other": {
+          ".validate": "$other.matches(/^(claimedRoles|markers|players|roomId|targetMarkers|timeline)$/)"
+        }
+      }
+    },
     "plans": {
       "$planId": {
         ".read": true,

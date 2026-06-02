@@ -28,10 +28,20 @@ window.FIREBASE_PLAN_ID = 'default';
 ## 2. Realtime Database rules for early prototype use
 
 Use a private/test Firebase project for this prototype. This open rule lets anyone with the page link edit plans.
+Keep the existing `rooms` rule if the same Firebase database is also used by another prototype.
 
 ```json
 {
   "rules": {
+    "rooms": {
+      "$roomId": {
+        ".read": true,
+        ".write": true,
+        "$other": {
+          ".validate": "$other.matches(/^(claimedRoles|markers|players|roomId|targetMarkers|timeline)$/)"
+        }
+      }
+    },
     "plans": {
       "$planId": {
         ".read": true,
